@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `email` VARCHAR(100) NOT NULL,
   `password_hash` CHAR(60) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_bin' NOT NULL,
   `profile_image` VARCHAR(255) NULL DEFAULT NULL,
-  `role` ENUM('student', 'employer', 'admin') NOT NULL,
+  `role` ENUM('student', 'employer', 'admin') NOT NULL DEFAULT 'student',
   `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
   PRIMARY KEY (`user_id`))
 ENGINE = InnoDB

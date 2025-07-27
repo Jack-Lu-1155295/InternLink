@@ -18,13 +18,13 @@ app = Flask(__name__)
 app.secret_key = 'Example Secret Key (CHANGE THIS TO YOUR OWN SECRET KEY!)'
 
 # Set up database connection.
-from loginapp import connect
-from loginapp import db
+from app import connect
+from app import db
 db.init_db(app, connect.dbuser, connect.dbpass, connect.dbhost, connect.dbname,
            connect.dbport)
 
 # Include all modules that define our Flask route-handling functions.
-from loginapp import user
-from loginapp import customer
-from loginapp import staff
-from loginapp import admin
+from app import common
+from app import student
+from app import employer
+from app import admin

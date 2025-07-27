@@ -1,13 +1,13 @@
-from loginapp import app
-from loginapp import db
+from app import app
+from app import db
 from flask import redirect, render_template, session, url_for
 
-@app.route('/customer/home')
-def customer_home():
-     """Customer Homepage endpoint.
+@app.route('/student/home')
+def student_home():
+     """student Homepage endpoint.
 
      Methods:
-     - get: Renders the homepage for the current customer, or an "Access
+     - get: Renders the homepage for the current student, or an "Access
           Denied" 403: Forbidden page if the current user has a different role.
 
      If the user is not logged in, requests will redirect to the login page.
@@ -34,8 +34,8 @@ def customer_home():
      if 'loggedin' not in session:
           # The user isn't logged in, so redirect them to the login page.
           return redirect(url_for('login'))
-     elif session['role']!='customer':
-          # The user isn't logged in with a customer account, so return an
+     elif session['role']!='student':
+          # The user isn't logged in with a student account, so return an
           # "Access Denied" page instead. We don't do a redirect here, because
           # we're not sending them somewhere else: just delivering an
           # alternative page.
@@ -45,6 +45,6 @@ def customer_home():
           # requested page.
           return render_template('access_denied.html'), 403
 
-     # The user is logged in with a customer account, so render the customer
+     # The user is logged in with a student account, so render the student
      # homepage as requested.
-     return render_template('customer_home.html')
+     return render_template('student_home.html')
