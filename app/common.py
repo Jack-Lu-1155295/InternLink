@@ -77,7 +77,7 @@ def login():
             # do at the beginning of the `signup` function.
             cursor.execute('''
                            SELECT user_id, username, password_hash, role
-                           FROM users
+                           FROM user
                            WHERE username = %s;
                            ''', (username,))
             account = cursor.fetchone()

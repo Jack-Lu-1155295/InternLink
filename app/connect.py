@@ -32,4 +32,4 @@ dbuser = 'root'  # PUT YOUR USERNAME HERE - usually "root"
 dbpass = '041611075ltg'  # PUT YOUR PASSWORD HERE
 dbhost = 'localhost'
 dbport = 3306
-dbname = 'loginexample'
+dbname = 'internlink'

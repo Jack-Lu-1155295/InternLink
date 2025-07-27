@@ -1,4 +1,4 @@
-USE InternLink;
+USE internlink;
 -- Add Admin Users
 INSERT INTO `user` (username, full_name, email, password_hash, role, status) VALUES
 ('alice.admin', 'Alice Johnson', 'alice.johnson@internlink.com', '$2b$12$5WDknZAy4TG4xFSVu3dV..770dcC39pQvsIBbU56ksfmOIjQeWzdG', 'admin', 'active'),
