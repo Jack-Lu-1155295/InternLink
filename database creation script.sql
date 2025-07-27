@@ -72,7 +72,6 @@ CREATE TABLE IF NOT EXISTS `internship` (
   `number_of_opening` INT,
   `additonal_req` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`internship_id`),
-  UNIQUE INDEX `company_id` (`company_id` ASC) VISIBLE,
   CONSTRAINT `internship_ibfk_1`
     FOREIGN KEY (`company_id`)
     REFERENCES `employer` (`emp_id`))

@@ -32,11 +32,35 @@ flask_bcrypt = Bcrypt(app)
 
 # Replace the example UserAccount objects below with the initial user accounts
 # for your own web app. You can add as many as you need to the list.
-users = [UserAccount('user1', 'customer1pass'), 
-         UserAccount('user2', 'customer2pass'),
-         UserAccount('staff1', 'staff1pass'),
-         UserAccount('staff2', 'staff2pass'),
-         UserAccount('admin1', 'admin1pass')]
+users = [
+    UserAccount('alice.admin', 'AR4165o17Y'),
+    UserAccount('bob.admin', 't4SXLYbBvM'),
+    UserAccount('emma.thompson', 'uNw5bRyxeM'),
+    UserAccount('james.brown', 'BwrbwsfFIe'),
+    UserAccount('sophia.taylor', 'zVGtMdNhbb'),
+    UserAccount('oliver.wilson', 'zYqEzchzRR'),
+    UserAccount('liam.white', 'XTDQQ8SoCc'),
+    UserAccount('mia.williams', 'q4hHcvpK0n'),
+    UserAccount('noah.johnson', '3RPuH5JXkF'),
+    UserAccount('ava.smith', 'DYaEp7RUMb'),
+    UserAccount('jack.brown', 'wz6YHuA1uS'),
+    UserAccount('olivia.jones', 'Qf7JKfHwNl'),
+    UserAccount('william.davis', 'FYoWpqg7cS'),
+    UserAccount('isabella.miller', 'jqKwJe0xt9'),
+    UserAccount('lucas.wilson', 'bt0iY7YqfE'),
+    UserAccount('amelia.moore', '0IV8zGnGfA'),
+    UserAccount('elijah.taylor', 'TIdcVYtI6W'),
+    UserAccount('sophia.anderson', 'WzOa24hxaB'),
+    UserAccount('james.thomas', '0jApkXwGKR'),
+    UserAccount('charlotte.jackson', '4aMYAu7gRy'),
+    UserAccount('benjamin.white', 'xHjTt1YPf7'),
+    UserAccount('harper.harris', '7Y5zeUFBmQ'),
+    UserAccount('henry.martin', 'woYg3TNVmW'),
+    UserAccount('evelyn.thompson', 'yLe3Qyk9g7'),
+    UserAccount('alexander.garcia', 'F4iHOcMi9J'),
+    UserAccount('ella.martinez', 'kpLwOfkY8Q'),
+    UserAccount('daniel.robinson', 'jvKUPLhT4Q')
+]
 
 print('Username | Password | Hash | Password Matches Hash')
 
