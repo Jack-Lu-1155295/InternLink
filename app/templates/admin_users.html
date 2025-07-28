@@ -1,0 +1,84 @@
+{% extends 'userbase.html' %}
+{% block title %}Manage Users{% endblock %}
+{% set active_page = 'users' %}
+{% block content %}
+<section class="container mt-4">
+    <h2 class="mb-4 text-center">User Management</h2>
+
+    <!-- Filter Form -->
+    <form method="GET" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <input type="text" class="form-control" name="first_name" placeholder="First Name" value="{{ filters.first_name }}">
+        </div>
+        <div class="col-md-3">
+            <input type="text" class="form-control" name="last_name" placeholder="Last Name" value="{{ filters.last_name }}">
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="role">
+                <option value="">All Roles</option>
+                <option value="student" {{ 'selected' if filters.role == 'student' else '' }}>Student</option>
+                <option value="employer" {{ 'selected' if filters.role == 'employer' else '' }}>Employer</option>
+                <option value="admin" {{ 'selected' if filters.role == 'admin' else '' }}>Admin</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" name="status">
+                <option value="">All Status</option>
+                <option value="active" {{ 'selected' if filters.status == 'active' else '' }}>Active</option>
+                <option value="inactive" {{ 'selected' if filters.status == 'inactive' else '' }}>Inactive</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+
+    <!-- Users Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th class="text-center">Change Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.user_id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.full_name or '' }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>{{ user.status }}</td>
+                    <td class="text-center">
+                        {% if user.status == 'active' %}
+                            <form method="POST" action="{{ url_for('user_management') }}">
+                                <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                                <input type="hidden" name="new_status" value="inactive">
+                                <button type="submit" class="btn btn-sm btn-warning">Deactivate</button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{{ url_for('user_management') }}">
+                                <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                                <input type="hidden" name="new_status" value="active">
+                                <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

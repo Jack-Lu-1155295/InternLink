@@ -1,9 +1,11 @@
 {% extends 'userbase.html' %}
-{% block title %}All Applications{% endblock %}
+
+{% block title %}Manage Applications{% endblock %}
 {% set active_page = 'home' %}
+
 {% block content %}
 <section class="container my-5">
-    <h2 class="text-center mb-4">All Internship Applications</h2>
+    <h2 class="text-center mb-4">Applications for Your Internships</h2>
 
     <!-- Search Form -->
     <form method="GET" class="row g-3 mb-4">
@@ -26,17 +28,14 @@
         </div>
     </form>
 
-
     {% if applications %}
-        <table class="table table-bordered table-hover">
-            <thead class="table-success">
+    <form method="POST">
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>Title</th>
-                    <th>Location</th>
-                    <th>Duration</th>
-                    <th>Deadline</th>
-                    <th style="min-width: 110px;">Status</th>
+                    <th>Student Name</th>
+                    <th>Internship Title</th>
+                    <th>Status</th>
                     <th>Feedback</th>
                     <th>Cover Letter</th>
                     <th>Action</th>
@@ -45,12 +44,9 @@
             <tbody>
                 {% for app in applications %}
                 <tr>
-                    <form method="POST" action="{{ url_for('view_applications') }}">
+                    <form method="POST" action="{{ url_for('view_applications') }}"></form>
                         <td>{{ app.full_name }}</td>
                         <td>{{ app.title }}</td>
-                        <td>{{ app.location }}</td>
-                        <td>{{ app.duration }}</td>
-                        <td>{{ app.deadline.strftime('%Y-%m-%d') }}</td>
                         <td>
                             <select name="status" class="form-select">
                                 <option value="Pending" {% if app.status == 'Pending' %}selected{% endif %}>Pending</option>
@@ -59,23 +55,22 @@
                             </select>
                         </td>
                         <td>
-                            <textarea name="feedback" rows="2" class="form-control">{{ app.feedback or '' }}</textarea>
+                        <textarea name="feedback" rows="2" class="form-control">{{ app.feedback or '' }}</textarea>
                         </td>
-                        <td style="white-space: pre-wrap;">
-                            <div style="max-height: 150px; overflow-y:auto;"> {{ app.cover_letter or '' }}</div>
-                        </td>
+                        <td style="white-space: pre-wrap;">{{ app.cover_letter or 'N/A' }}</td>
                         <td>
                             <input type="hidden" name="student_id" value="{{ app.student_id }}">
                             <input type="hidden" name="internship_id" value="{{ app.internship_id }}">
-                            <button type="submit" class="btn btn-sm btn-success">Update</button>  
+                            <button type="submit" class="btn btn-success btn-sm">Update</button>
                         </td>
-                    </form>
+                    </form>    
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </form>
     {% else %}
-        <p class="text-muted">No internship applications found.</p>
+        <p class="text-muted">No applications found for your internships.</p>
     {% endif %}
 </section>
 {% endblock %}

@@ -1,6 +1,6 @@
 from app import app
 from app import db
-from flask import redirect, render_template, request, session, url_for
+from flask import redirect, render_template, request, session, url_for, flash
 from flask_bcrypt import Bcrypt
 import re
 import os
@@ -78,7 +78,7 @@ def login():
             # equally valid to put the whole SQL statement on one line like we
             # do at the beginning of the `signup` function.
             cursor.execute('''
-                           SELECT user_id, username, password_hash, role
+                           SELECT user_id, username, password_hash, role, status
                            FROM user
                            WHERE username = %s;
                            ''', (username,))
@@ -99,6 +99,10 @@ def login():
                     # app's secret key. That means if they try to edit the cookie
                     # to impersonate another user, the signature will no longer
                     # match and Flask will know the session data is invalid.
+                    if account['status'] == 'inactive':
+                        flash('Your account is deactivated. Please contact the administrator.', 'danger')
+                        return redirect(user_home_url())
+                    
                     session['loggedin'] = True
                     session['user_id'] = account['user_id']
                     session['username'] = account['username']
@@ -337,29 +341,6 @@ def signup():
     # password). Render the signup page with no pre-populated form fields or
     # error messages.
     return render_template('signup.html')
-
-
-
-
-@app.route('/profile')
-def profile():
-    """User Profile page endpoint.
-
-    Methods:
-    - get: Renders the user profile page for the current user.
-
-    If the user is not logged in, requests will redirect to the login page.
-    """
-    if 'loggedin' not in session:
-         return redirect(url_for('login'))
-
-    # Retrieve user profile from the database.
-    with db.get_cursor() as cursor:
-        cursor.execute('SELECT username, email, role FROM users WHERE user_id = %s;',
-                       (session['user_id'],))
-        profile = cursor.fetchone()
-
-    return render_template('profile.html', profile=profile)
 
 @app.route('/logout')
 def logout():

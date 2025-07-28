@@ -1,0 +1,43 @@
+{% extends 'userbase.html' %}
+{% block title %}My Profile{% endblock %}
+{% set active_page = 'profile' %}
+{% block content %}
+<section class="container my-5">
+    <h2 class="text-center mb-4">Student Profile</h2>
+    <form method="POST" enctype="multipart/form-data" class="row g-3">
+        <div class="col-md-6">
+            <label for="full_name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ profile.full_name or '' }}" required>
+        </div>
+
+        <div class="col-md-6">
+            <label for="email" class="form-label">Email (read-only)</label>
+            <input type="email" class="form-control" id="email" value="{{ profile.email or '' }}" readonly>
+        </div>
+
+        <div class="col-md-6">
+            <label for="university" class="form-label">University</label>
+            <input type="text" class="form-control" id="university" name="university" value="{{ profile.university or '' }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="course" class="form-label">Course</label>
+            <input type="text" class="form-control" id="course" name="course" value="{{ profile.course or '' }}">
+        </div>
+
+        <div class="col-md-12">
+            <label for="resume" class="form-label">Resume (PDF only, max 5MB)</label>
+            <input type="file" class="form-control" id="resume" name="resume" accept=".pdf">
+            {% if profile.resume_path %}
+                <small class="form-text text-muted mt-1">
+                    Current: <a href="{{ url_for('static', filename='resumes/' ~ profile.resume_path) }}" target="_blank">View Current Resume</a>
+                </small>
+            {% endif %}
+        </div>
+
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'userbase.html' %}
+{% block title %}My Profile{% endblock %}
+{% set active_page = 'profile' %}
+
+{% block content %}
+<section class="container my-5">
+    <h2 class="text-center mb-4">Employer Profile</h2>
+    <form method="POST" enctype="multipart/form-data" class="row g-3">
+        <div class="col-md-6">
+            <label for="full_name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ profile.full_name or '' }}" required>
+        </div>
+
+        <div class="col-md-6">
+            <label for="email" class="form-label">Email (read-only)</label>
+            <input type="email" class="form-control" id="email" value="{{ profile.email or '' }}" readonly>
+        </div>
+
+        <div class="col-md-6">
+            <label for="company_name" class="form-label">Company Name</label>
+            <input type="text" class="form-control" id="company_name" name="company_name" value="{{ profile.company_name or '' }}" required>
+        </div>
+
+        <div class="col-md-6">
+            <label for="website" class="form-label">Company Website</label>
+            <input type="text" class="form-control" id="website" 
+            name="website" 
+            placeholder="https://yourcompanywebsite.com"
+            value="{{ profile.website or '' }}">            
+        </div>
+
+        <div class="col-md-12">
+            <label for="company_description" class="form-label">Company Description</label>
+            <textarea class="form-control" id="company_description" name="company_description" rows="4">{{ profile.company_description or '' }}</textarea>
+        </div>
+
+        <div class="col-md-12">
+            <label for="logo" class="form-label">Company Logo (JPG, PNG only)</label>
+            <input type="file" class="form-control" id="logo" name="logo" accept=".jpg,.jpeg,.png">
+            {% if profile.logo_path %}
+                <small class="form-text text-muted mt-1">
+                    Current: <img src="{{ url_for('static', filename='profile_images/' ~ profile.logo_path) }}" alt="Company Logo" style="max-height: 100px;" class="ms-2">
+                </small>
+            {% endif %}
+        </div>
+
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

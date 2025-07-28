@@ -17,11 +17,11 @@ INSERT INTO `user` (username, full_name, email, password_hash, role, status) VAL
 -- 3. Add Employers
 -- ======================
 INSERT INTO `employer` (user_id, company_name, company_description, website, logo_path) VALUES
-(3, 'TechCorp Ltd', 'Specializing in AI, cloud solutions, and enterprise applications.', 'https://www.techcorp.co.nz', '/logos/techcorp.png'),
-(4, 'HealthCare Inc', 'Leading provider of medical devices and digital health solutions.', 'https://www.healthcare.co.nz', '/logos/healthcare.png'),
-(5, 'EduSoft', 'Developing innovative education management platforms for schools and universities.', 'https://www.edusoft.co.nz', '/logos/edusoft.png'),
-(6, 'GreenEnergy', 'A renewable energy startup focusing on solar and wind power.', 'https://www.greenenergy.co.nz', '/logos/greenenergy.png'),
-(7, 'AgriFoods', 'Providing sustainable food and agricultural products to global markets.', 'https://www.agrifoods.co.nz', '/logos/agrifoods.png');
+(3, 'TechCorp Ltd', 'Specializing in AI, cloud solutions, and enterprise applications.', 'https://www.techcorp.co.nz', ''),
+(4, 'HealthCare Inc', 'Leading provider of medical devices and digital health solutions.', 'https://www.healthcare.co.nz', ''),
+(5, 'EduSoft', 'Developing innovative education management platforms for schools and universities.', 'https://www.edusoft.co.nz', ''),
+(6, 'GreenEnergy', 'A renewable energy startup focusing on solar and wind power.', 'https://www.greenenergy.co.nz', ''),
+(7, 'AgriFoods', 'Providing sustainable food and agricultural products to global markets.', 'https://www.agrifoods.co.nz', '');
 
 -- ======================
 -- 4. Add Student Users (20 students)
