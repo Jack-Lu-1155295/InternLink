@@ -1,0 +1,53 @@
+{% extends 'userbase.html' %}
+
+{% block title %}Apply for Internship{% endblock %}
+{% set active_page = 'home' %}
+
+{% block content %}
+<section class="container my-5">
+    <h2 class="text-center mb-4">Apply for Internship</h2>
+
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5>Internship Details</h5>
+                <p><strong>Company:</strong> {{ internship.company_name }}</p>
+                <p><strong>Title:</strong> {{ internship.title }}</p>
+                <p><strong>Description:</strong> {{ internship.description }}</p>
+                <p><strong>Location:</strong> {{ internship.location or 'N/A' }}</p>
+                <p><strong>Duration:</strong> {{ internship.duration or 'N/A' }}</p>
+                <p><strong>Deadline:</strong> {{ internship.deadline.strftime('%Y-%m-%d') if internship.deadline else 'N/A' }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <h5>Your Details</h5>
+                <p><strong>Full Name:</strong> {{ student_info.full_name }}</p>
+                <p><strong>Email:</strong> {{ student_info.email }}</p>
+                <p><strong>University:</strong> {{ student_info.university or 'N/A' }}</p>
+                <p><strong>Course:</strong> {{ student_info.course or 'N/A' }}</p>
+                <p><strong>Current Resume:</strong>
+                    {% if student_info.resume_path %}
+                        <a href="{{ url_for('static', filename=student_info.resume_path.replace('static/', '')) }}" target="_blank">View</a>
+                    {% else %}
+                        Not uploaded
+                    {% endif %}
+                </p>
+                <div class="mb-3">
+                    <label for="resume" class="form-label">Upload/Replace Resume (PDF only, max 5MB)</label>
+                    <input type="file" class="form-control" name="resume" accept=".pdf">
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="cover_letter" class="form-label">Cover Letter / Additional Note</label>
+            <textarea name="cover_letter" class="form-control" rows="5" placeholder="Write your cover letter or notes here..."></textarea>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg">Submit Application</button>
+            <a href="{{ url_for('student_home') }}" class="btn btn-secondary btn-lg ms-2">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

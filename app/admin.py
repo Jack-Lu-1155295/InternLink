@@ -1,6 +1,7 @@
 from app import app
 from app import db
-from flask import redirect, render_template, session, url_for
+from flask import redirect, render_template, session, url_for, request
+from app.db import get_cursor
 
 @app.route('/admin/home')
 def admin_home():
@@ -18,3 +19,4 @@ def admin_home():
           return render_template('access_denied.html'), 403
 
      return render_template('admin_home.html')
+

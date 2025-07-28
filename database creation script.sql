@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS `application` (
   `internship_id` INT NOT NULL,
   `status` ENUM('Pending', 'Accepted', 'Rejected') NULL DEFAULT 'Pending',
   `feedback` TEXT NULL DEFAULT NULL,
+  `cover_letter` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`student_id`, `internship_id`),
   INDEX `internship_id` (`internship_id` ASC) VISIBLE,
   CONSTRAINT `application_ibfk_1`

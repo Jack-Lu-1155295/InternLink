@@ -1,6 +1,10 @@
 from app import app
 from app import db
 from flask import redirect, render_template, session, url_for
+from flask import request, flash
+from app.db import get_cursor
+from werkzeug.utils import secure_filename
+import os
 
 @app.route('/student/home')
 def student_home():
@@ -48,3 +52,103 @@ def student_home():
      # The user is logged in with a student account, so render the student
      # homepage as requested.
      return render_template('student_home.html')
+
+def allowedfile(filename, allowedext):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowedext
+
+@app.route('/student/apply/<int:internship_id>', methods=['GET', 'POST'])
+def apply_internship(internship_id):
+
+     # student login
+     if 'loggedin' not in session:
+          return redirect(url_for('login'))
+     elif session['role'] != 'student':
+          return render_template('access_denied.html'), 403  
+     
+     user_id=session.get('user_id')
+     cursor=get_cursor()
+
+     # Get student_id using user_id
+     cursor.execute("SELECT student_id FROM student WHERE user_id = %s", (user_id,))
+     result = cursor.fetchone()
+     if not result:
+          return render_template('access_denied.html'), 403
+     student_id = result['student_id']
+     
+     # Internship details
+     cursor.execute("""
+          SELECT i.*, e.company_name
+          FROM internship i
+          JOIN employer e ON i.company_id = e.emp_id
+          WHERE i.internship_id = %s
+          """,(internship_id,)) 
+     internship = cursor.fetchone()
+
+     # Student details
+     cursor.execute("""
+          SELECT u.full_name, u.email, s.university, s.course, s.resume_path
+          FROM user u
+          JOIN student s ON u.user_id = s.user_id
+          WHERE u.user_id = %s
+          """,(user_id,)) 
+     student_info = cursor.fetchone()
+
+     # Resume 
+     Resume_Ext = {'pdf'}
+
+     if request.method == 'POST':
+        cover_letter = request.form.get('cover_letter', '') or None
+        resume_file = request.files.get('resume') or None
+
+        resume_path = student_info['resume_path'] or None 
+        
+        if resume_file and resume_file.filename:
+          if allowedfile(resume_file.filename, Resume_Ext):
+               max_resume_size = 5 * 1024 * 1024
+               resume_file.seek(0, os.SEEK_END)
+               resume_file_size = resume_file.tell()
+               resume_file.seek(0)
+                    
+               if resume_file_size > max_resume_size:
+                    flash('Resume file exceeds 5MB size limit.', 'danger')
+                    return render_template('apply_internship.html', internship=internship, student_id=student_id, student_info=student_info)
+                    
+               else:
+                    ext = resume_file.filename.rsplit('.', 1)[1].lower()
+                    filename = secure_filename(f"resume_{session['username']}.{ext}")
+                    resume_path = os.path.join('static/resumes', filename)
+                    resume_file.save(resume_path)
+
+                    try:
+                         cursor.execute("""
+                         UPDATE student SET resume_path = %s WHERE student_id = %s
+                         """, (resume_path, student_id))
+                         db.get_db().commit()
+                    except Exception as e:
+                         print("Resume path update error:", e)
+                         flash('Failed to update resume in database.','danger')
+                         return render_template('apply_internship.html',internship=internship, student_id=student_id, student_info=student_info)
+          else:
+               flash('Invalid resume format. Only PDF allowed.', 'danger')
+               return render_template('apply_internship.html', internship=internship, student_id=student_id, student_info=student_info)
+
+     # Insert application into database
+        try:
+               cursor.execute("""
+               INSERT INTO application (internship_id, student_id, cover_letter)
+               VALUES (%s, %s, %s)
+          """, (internship_id, student_id, cover_letter))
+               db.get_db().commit()
+
+        except Exception as e:
+               print("Application insert error:", e)
+               flash('Failed to submit application. Please try again.', 'danger')
+               return render_template('apply_internship.html', internship=internship, student_id=student_id, student_info=student_info)
+
+        cursor.close()
+        flash('Application submitted successfully!', 'success')
+        return redirect(url_for('student_home'))
+     
+     return render_template('apply_internship.html', internship=internship, student_id=student_id, student_info=student_info)
+
+

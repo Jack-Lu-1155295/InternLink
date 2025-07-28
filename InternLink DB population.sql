@@ -52,26 +52,26 @@ INSERT INTO `user` (username, full_name, email, password_hash, role, status) VAL
 -- 5. Add Students
 -- ======================
 INSERT INTO `student` (user_id, university, course, resume_path) VALUES
-(8, 'University of Otago', 'Computer Science', '/resumes/mia_williams.pdf'),
-(9, 'University of Canterbury', 'Information Systems', '/resumes/noah_johnson.pdf'),
-(10, 'University of Auckland', 'Data Science', '/resumes/ava_smith.pdf'),
-(11, 'Massey University', 'Software Engineering', '/resumes/jack_brown.pdf'),
-(12, 'University of Otago', 'Biotechnology', '/resumes/olivia_jones.pdf'),
-(13, 'University of Canterbury', 'Health Informatics', '/resumes/william_davis.pdf'),
-(14, 'University of Waikato', 'Cybersecurity', '/resumes/isabella_miller.pdf'),
-(15, 'University of Auckland', 'Business Analytics', '/resumes/lucas_wilson.pdf'),
-(16, 'Massey University', 'Marketing', '/resumes/amelia_moore.pdf'),
-(17, 'University of Otago', 'Artificial Intelligence', '/resumes/elijah_taylor.pdf'),
-(18, 'University of Canterbury', 'Finance', '/resumes/sophia_anderson.pdf'),
-(19, 'University of Waikato', 'Architecture', '/resumes/james_thomas.pdf'),
-(20, 'University of Auckland', 'UX Design', '/resumes/charlotte_jackson.pdf'),
-(21, 'Massey University', 'Agricultural Science', '/resumes/benjamin_white.pdf'),
-(22, 'University of Otago', 'Chemistry', '/resumes/harper_harris.pdf'),
-(23, 'University of Canterbury', 'Civil Engineering', '/resumes/henry_martin.pdf'),
-(24, 'University of Waikato', 'Media Studies', '/resumes/evelyn_thompson.pdf'),
-(25, 'University of Auckland', 'Robotics', '/resumes/alexander_garcia.pdf'),
-(26, 'Massey University', 'Food Technology', '/resumes/ella_martinez.pdf'),
-(27, 'University of Otago', 'Psychology', '/resumes/daniel_robinson.pdf');
+(8, 'University of Otago', 'Computer Science', ''),
+(9, 'University of Canterbury', 'Information Systems', ''),
+(10, 'University of Auckland', 'Data Science', ''),
+(11, 'Massey University', 'Software Engineering', ''),
+(12, 'University of Otago', 'Biotechnology', ''),
+(13, 'University of Canterbury', 'Health Informatics', ''),
+(14, 'University of Waikato', 'Cybersecurity', ''),
+(15, 'University of Auckland', 'Business Analytics', ''),
+(16, 'Massey University', 'Marketing', ''),
+(17, 'University of Otago', 'Artificial Intelligence', ''),
+(18, 'University of Canterbury', 'Finance', ''),
+(19, 'University of Waikato', 'Architecture', ''),
+(20, 'University of Auckland', 'UX Design', ''),
+(21, 'Massey University', 'Agricultural Science', ''),
+(22, 'University of Otago', 'Chemistry', ''),
+(23, 'University of Canterbury', 'Civil Engineering', ''),
+(24, 'University of Waikato', 'Media Studies', ''),
+(25, 'University of Auckland', 'Robotics', ''),
+(26, 'Massey University', 'Food Technology', ''),
+(27, 'University of Otago', 'Psychology', '');
 
 -- ======================
 -- 6. Add Internships (20)

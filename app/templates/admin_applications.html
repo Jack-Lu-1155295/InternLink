@@ -1,0 +1,40 @@
+{% extends 'userbase.html' %}
+{% block title %}All Applications{% endblock %}
+{% set active_page = 'home' %}
+{% block content %}
+<section class="container my-5">
+    <h2 class="text-center mb-4">All Internship Applications</h2>
+    {% if applications %}
+        <table class="table table-bordered table-hover">
+            <thead class="table-success">
+                <tr>
+                    <th>Student</th>
+                    <th>Title</th>
+                    <th>Location</th>
+                    <th>Duration</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th>Feedback</th>
+                    <th>Cover Letter</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>{{ app.full_name }}</td>
+                    <td>{{ app.title }}</td>
+                    <td>{{ app.location }}</td>
+                    <td>{{ app.duration }}</td>
+                    <td>{{ app.deadline.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ app.status }}</td>
+                    <td>{{ app.feedback if app.status != 'Pending' else 'N/A' }}</td>
+                    <td>{{ app.cover_letter or 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-muted">No internship applications found.</p>
+    {% endif %}
+</section>
+{% endblock %}

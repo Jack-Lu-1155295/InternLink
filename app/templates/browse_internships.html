@@ -1,0 +1,55 @@
+{% extends 'userbase.html' %}
+
+{% block title %}Browse Internships{% endblock %}
+{% set active_page = 'home' %}
+
+{% block content %}
+<section class="container py-4">
+    <h2 class="text-center mb-4">Available Internships</h2>
+
+    <!-- Filter Form -->
+    <form method="GET" action="{{ url_for('browse_internships') }}" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="skills" class="form-control" placeholder="Filter by skill (e.g. Python)" value="{{ request.args.get('skills', '') }}">
+        </div>
+        <div class="col-md-4">
+            <input type="text" name="location" class="form-control" placeholder="Filter by location" value="{{ request.args.get('location', '') }}">
+        </div>
+        <div class="col-md-4">
+            <input type="text" name="duration" class="form-control" placeholder="Filter by duration (e.g. 3 months)" value="{{ request.args.get('duration', '') }}">
+        </div>
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-success">Apply Filters</button>
+            <a href="{{ url_for('browse_internships') }}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+
+    <!-- Internship Listings -->
+    {% if internships %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for internship in internships %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ internship.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ internship.company_name }}</h6>
+                    <p class="card-text"><strong>Location:</strong> {{ internship.location or 'N/A' }}</p>
+                    <p class="card-text"><strong>Duration:</strong> {{ internship.duration or 'N/A' }}</p>
+                    <p class="card-text"><strong>Deadline:</strong> {{ internship.deadline }}</p>
+                    <p class="card-text"><strong>Stipend:</strong> {{ internship.stipend or 'Unpaid' }}</p>
+                    <p class="card-text"><strong>Skills:</strong> {{ internship.skills_required or 'Not specified' }}</p>
+                </div>
+                {% if session.get('role') == 'student' %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('apply_internship', internship_id=internship.internship_id) }}" class="btn btn-success">Apply</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-muted mt-4">No internships found matching your criteria.</p>
+    {% endif %}
+</section>
+{% endblock %}
