@@ -1,0 +1,33 @@
+{% extends 'userbase.html' %}
+{% block title %}My Profile{% endblock %}
+{% set active_page = 'admin_profile' %}
+{% block content %}
+<section class="container my-5">
+    <h2 class="text-center mb-4">My Profile</h2>
+    <form method="POST" enctype="multipart/form-data" class="row g-3">
+        
+        <!-- Full Name -->
+        <div class="col-md-6">
+            <label for="full_name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name or '' }}" required>
+        </div>
+
+        <!-- Email -->
+        <div class="col-md-6">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" name="email", required class="form-control" value="{{ user.email or '' }}" required>
+        </div>
+
+        <!-- Profile Image Upload -->
+        <div class="mb-3">
+          <label for="profile_image" class="form-label fw-semibold">Upload Profile Image (PNG, JPG, JPEG - max 1MB)</label>
+          <input type="file" class="form-control" 
+          id="profile_image" name="profile_image" accept="image/*">
+        </div>        
+
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

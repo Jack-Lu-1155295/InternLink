@@ -246,7 +246,7 @@ def signup():
         elif password != confirm_password:
             confirm_password_error = 'Passwords do not match'        
 
-        # Resume Validation
+        # Resume handling
         if resume_file and resume_file.filename:
             if allowedfile(resume_file.filename, Resume_Ext):
 
@@ -261,12 +261,12 @@ def signup():
                 else:
                     ext = resume_file.filename.rsplit('.',1)[1].lower()
                     filename = secure_filename(f"resume_{username}.{ext}")
-                    resume_path = os.path.join('static', 'resumes', filename).replace('\\', '/')
+                    resume_path = os.path.join('app', 'static', 'resumes', filename).replace('\\', '/')
                     resume_file.save(resume_path)
             else:
                 resume_error = 'You can only upload your resume in PDF format.' 
 
-        # Profile Image validation
+        # Profile Image handling
         if profile_image_file and profile_image_file.filename:
             if allowedfile(profile_image_file.filename, Image_Ext):
 
@@ -281,10 +281,10 @@ def signup():
                 else:
                     ext = profile_image_file.filename.rsplit('.',1)[1].lower()
                     filename = secure_filename(f"image_{username}.{ext}")
-                    profile_image = os.path.join('static','profile_images', filename).replace('\\', '/')
+                    profile_image = os.path.join('app', 'static','profile_images', filename).replace('\\', '/')
                     profile_image_file.save(profile_image)
             else:
-                profile_image_error = 'Only image files (png, jpg, jpeg, gif) are allowed.'
+                profile_image_error = 'Only image files (png, jpg, jpeg) are allowed.'
 
 
         if (username_error or email_error or password_error or confirm_password_error or full_name_error or resume_error or profile_image_error):

@@ -1,7 +1,9 @@
 from app import app
 from app import db
-from flask import redirect, render_template, session, url_for, request
+from flask import redirect, render_template, session, url_for, request, flash
 from app.db import get_cursor
+import os
+from werkzeug.utils import secure_filename
 
 @app.route('/admin/home')
 def admin_home():
@@ -17,8 +19,86 @@ def admin_home():
           return redirect(url_for('login'))
      elif session['role']!='admin':
           return render_template('access_denied.html'), 403
+     
+     user_id=session['user_id']
+     cursor=get_cursor()
 
-     return render_template('admin_home.html')
+     cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+     user = cursor.fetchone()
+
+     cursor.close()
+
+     return render_template('admin_home.html', user=user)
+
+Image_Ext = {'png', 'jpg', 'jpeg'}
+
+def allowedfile(filename, allowedext):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowedext
+
+@app.route('/admin_profile', methods=['GET', 'POST'])
+def admin_profile():
+    # logged in as admin
+    if 'loggedin' not in session or session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    cursor = get_cursor()
+
+    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+
+    if request.method == 'POST':
+          full_name = request.form.get('full_name')
+          email = request.form.get('email')
+          profile_image_file = request.files.get('profile_image') or None
+
+          # Update full name in user table
+          cursor.execute("UPDATE user SET full_name = %s WHERE user_id = %s", (full_name, user_id))
+
+          # Update email in user table
+          cursor.execute("UPDATE user SET email = %s WHERE user_id = %s", (email, user_id))
+          
+          # Profile Image handling
+          if profile_image_file and profile_image_file.filename:
+               if allowedfile(profile_image_file.filename, Image_Ext):
+
+                    max_image_size = 1 * 1024 * 1024
+                    profile_image_file.seek(0, os.SEEK_END)
+                    image_file_size = profile_image_file.tell()
+                    profile_image_file.seek(0)
+
+                    if image_file_size > max_image_size:
+                         flash("Image cannot exceed 1MB.", "danger")
+                         return render_template ('admin_profile.html', user=user)
+
+                    else:
+                         ext = profile_image_file.filename.rsplit('.',1)[1].lower()
+                         filename = secure_filename(f"image_{user['username']}.{ext}")
+                         profile_image = os.path.join('app', 'static','profile_images', filename).replace('\\', '/')
+                         profile_image_file.save(profile_image)
+
+                         try:
+                              cursor.execute("""
+                              UPDATE user SET profile_image = %s WHERE user_id = %s
+                              """, (profile_image, user_id))
+                              db.get_db().commit()
+                              flash('Your profile has been updated successfully.', 'success')
+                         
+                         except Exception as e:
+                              flash('Failed to update profile image.','danger')
+                              return render_template('admin_profile.html', user=user)
+               else:
+                    flash('Only image files (png, jpg, jpeg) are allowed.', 'danger')
+                    return render_template ('admin_profile.html', user=user)
+  
+    # Fetch profile data
+    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+    cursor.close()
+
+    return render_template('admin_profile.html', user=user)
+
+
 
 @app.route('/admin/users', methods=['GET', 'POST'])
 def user_management():
@@ -28,7 +108,11 @@ def user_management():
      elif session['role']!='admin':
           return render_template('access_denied.html'), 403
      
-     cursor = get_cursor()
+     user_id=session['user_id']
+     cursor=get_cursor()
+
+     cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+     user = cursor.fetchone()
 
      # Handle POST: status change
      if request.method == 'POST':
@@ -69,9 +153,10 @@ def user_management():
      users = cursor.fetchall()
      cursor.close()
 
-     return render_template('admin_users.html', users=users, filters={
+     return render_template('admin_users.html', user=user, users=users, filters={
         'first_name': first_name,
         'last_name': last_name,
         'role': role,
         'status': status
       })
+

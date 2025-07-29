@@ -24,13 +24,19 @@
             <label for="course" class="form-label">Course</label>
             <input type="text" class="form-control" id="course" name="course" value="{{ profile.course or '' }}">
         </div>
+        
+        <div class="mb-3">
+            <label for="profile_image" class="form-label fw-semibold">Upload Profile Image (PNG, JPG, JPEG - max 1MB)</label>
+            <input type="file" class="form-control" 
+            id="profile_image" name="profile_image" accept="image/*">
+        </div> 
 
         <div class="col-md-12">
             <label for="resume" class="form-label">Resume (PDF only, max 5MB)</label>
             <input type="file" class="form-control" id="resume" name="resume" accept=".pdf">
             {% if profile.resume_path %}
                 <small class="form-text text-muted mt-1">
-                    Current: <a href="{{ url_for('static', filename='resumes/' ~ profile.resume_path) }}" target="_blank">View Current Resume</a>
+                    Current: <a href="{{ url_for('static', filename= profile.resume_path.replace('app/static/', '')) }}" target="_blank">View Current Resume</a>
                 </small>
             {% endif %}
         </div>

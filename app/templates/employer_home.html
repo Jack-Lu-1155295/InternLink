@@ -9,7 +9,16 @@
 <section class="container py-5 text-center">
     <div class="row justify-content-center">
         <div class="col-lg-7">
-            <h1>Employer Home Page</h1>
+
+            {# Company Logo #}
+            {% if profile.logo_path %}
+                <img src="{{ url_for('static', filename=profile.logo_path.replace('app/static/', '')) }}"
+                     class="img-fluid mb-3 rounded"
+                     alt="Company Logo"
+                     style="max-height: 150px;">
+            {% endif %}
+
+            <h1>{{ profile.company_name }} Home Page</h1>
             <p class="lead text-muted">Welcome back to InternLink.</p>
             <a href="{{ url_for('browse_internships') }}" class="btn btn-success btn-lg mt-3">
                 Browse Internships

@@ -11,7 +11,11 @@ def browse_internships():
         return redirect(url_for('login'))
     
     role = session.get('role')
-    user_id = session.get('user_id')
+    user_id = session['user_id']
+    cursor = get_cursor()
+
+    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
     
     if session['role'] not in ['student', 'employer', 'admin']:
         return render_template('access_denied.html'), 403
@@ -31,8 +35,6 @@ def browse_internships():
 
     filters = (f"%{location}%", f"%{duration}%", f"%{skills}%", f"%{skills}%", f"%{skills}%")
 
-    cursor = get_cursor()
-    
     # only show internships posted by the logged in employer
     if role == 'employer':
         cursor.execute("SELECT emp_id FROM employer WHERE user_id = %s", (user_id,))
@@ -45,17 +47,21 @@ def browse_internships():
     internships = cursor.fetchall()
     cursor.close()
 
-    return render_template('browse_internships.html', internships=internships)
+    return render_template('browse_internships.html', user=user, internships=internships)
 
 @app.route('/applications', methods=['GET', 'POST'])
 def view_applications():
     # check login status
     if 'loggedin' not in session:
         return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    cursor = get_cursor()
+
+    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
 
     role = session.get('role')
-    user_id = session.get('user_id')
-    cursor = get_cursor()
 
     name_query=request.args.get('name', '')
     title_query = request.args.get('title', '')
@@ -83,7 +89,7 @@ def view_applications():
         
         applications = cursor.fetchall()
         cursor.close()
-        return render_template('student_applications.html', applications=applications)
+        return render_template('student_applications.html', user=user, applications=applications)
     
     # when an admin logged in, he should be able to see all applications.
     elif role == 'admin':
@@ -118,7 +124,7 @@ def view_applications():
             return redirect(url_for('view_applications'))
 
         cursor.close()
-        return render_template('admin_applications.html', applications=applications)
+        return render_template('admin_applications.html', user=user, applications=applications)
     
 
     #when an employer logged in, he should be able to view applications to internships posted by him.
@@ -158,7 +164,7 @@ def view_applications():
             return redirect(url_for('view_applications'))
 
         cursor.close()
-        return render_template('employer_applications.html', applications=applications)
+        return render_template('employer_applications.html', user=user, applications=applications)
 
 bcrypt = Bcrypt(app)
 
@@ -166,11 +172,14 @@ bcrypt = Bcrypt(app)
 def change_password():
     if 'loggedin' not in session:
         return redirect(url_for('login'))
-
-    user_id = session.get('user_id')
-    role = session.get('role')
-    cursor = get_cursor()
     
+    user_id = session['user_id']
+    cursor = get_cursor()
+    role = session.get('role')
+
+    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+   
     if request.method == "POST":
         current_password = request.form.get('current_password')
         new_password = request.form.get('new_password')
@@ -183,22 +192,22 @@ def change_password():
         # password validation
         if not result:
             flash("User not found", "danger")
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=user)
         elif not current_password or not new_password or not confirm_password:
             flash("All fields are required", "danger")
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=user)
         elif not bcrypt.check_password_hash(result['password_hash'], current_password):
             flash("Current password is incorrect.", "danger")
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=user)
         elif new_password != confirm_password:
             flash("New passwords do not match.", "danger")
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=user)
         elif bcrypt.check_password_hash(result['password_hash'], new_password):
             flash("New password cannot be the same as the current password.", "warning")
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=user)
         elif len(new_password) < 8:
             flash("New password must be at least 8 characters.", "warning")
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=user)
         
         # update password
         else:
@@ -216,6 +225,6 @@ def change_password():
             return redirect(url_for('admin_home'))
 
     cursor.close()
-    return render_template('change_password.html')
+    return render_template('change_password.html', user=user)
 
 

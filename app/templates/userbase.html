@@ -1,20 +1,5 @@
 {#
-	This is the base template for pages seen by a logged-in user, and provides
-	the top-level navigation menu.
-
-	Page templates based on this one should specify:
-		- A "title" block containing the page title (e.g. "User Profile")
-		- A "content" block containing the main HTML/Jinja content of the page.
-	
-	Each page should also set the "active_page" variable to control which top-
-	level menu item is highlighted as active (e.g. a homepage template based on
-	this one should include the line):
-		{% set active_page = 'home' %}
-	
-	Currently, the only available options are 'home' and 'profile'. You could
-	choose to continue with this same approach as you add other menu options,
-	using these two as an example, or find your own way to control which menu
-	item is shown as "active".
+Base template
 #}
 <!DOCTYPE html>
 <html lang="en">
@@ -40,35 +25,44 @@
 
             <!-- Profile Image -->
             <div class="my-3 text-center w-100">
-            <img src="{{ url_for('static', filename=profile_image or 'default_profile.png') }}"
-                class="rounded-circle img-thumbnail bg-light"
-                alt="Profile Image"
-                style="width: 100px; height: 100px; object-fit: cover;">
+            {% if user.profile_image %}
+              <img src="{{ url_for('static', filename = user.profile_image.replace('app/static/', '')) }}"
+                  class="rounded-circle img-thumbnail bg-light"
+                  alt="Profile Image"
+                  style="width: 100px; height: 100px; object-fit: cover;">
+            {% else %}
+              <img src="{{ url_for('static', filename = 'default_profile.png') }}"
+                  class="rounded-circle img-thumbnail bg-light"
+                  alt="Profile Image"
+                  style="width: 100px; height: 100px; object-fit: cover;">          
+            {% endif %}
             </div>
 
             <hr class="text-white w-100">
 
             <!-- Nav -->
-            <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start w-100" id="menu">
-              <li class="nav-item w-100">
-                <a href="{% if session['role'] == 'student' %}{{ url_for('student_home') }}
+            <div class="pb-3 w-100">
+              <a href="{% if session['role'] == 'student' %}{{ url_for('student_home') }}
                           {% elif session['role'] == 'employer' %}{{ url_for('employer_home') }}
                           {% elif session['role'] == 'admin' %}{{ url_for('admin_home') }}{% endif %}"
-                   class="nav-link text-white px-0 {{ 'active fw-bold bg-light text-success rounded' if active_page=='home' else '' }}">
-                  <i class="bi bi-house"></i> <span class="ms-2">Home</span>
-                </a>
-              </li>
-              
-            </ul>
+                          class="btn btn-outline-light w-100 fw-bold">Home</a>
+            </div>
+
             <hr class="text-white w-100">
 
             <!-- Logout -->
             <div class="pb-3 w-100">
               <a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100 fw-bold">Log Out</a>
             </div>
+            
+            <!-- Footer Note -->
+            <div class="w-100 text-center text-white small mt-3 mb-2">
+              Website developed by: Tiange Lu<br>1155295
+            </div>
+
           </div>
         </div>
-
+        
         <div class="col py-3">
           <!-- Flash Messages Block -->
           {% with messages = get_flashed_messages(with_categories=true) %}
