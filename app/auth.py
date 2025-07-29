@@ -14,12 +14,6 @@ flask_bcrypt = Bcrypt(app)
 DEFAULT_USER_ROLE = 'student'
 
 def user_home_url():
-    """Generates a URL to the homepage for the currently logged-in user.
-    
-    If the user is not logged in, this returns the URL for the login page
-    instead. If the user appears to be logged in, but the role stored in their
-    session cookie is invalid (i.e. not a recognised role), it returns the URL
-    for the logout page to clear that invalid session data."""
     if 'loggedin' in session:
         role = session.get('role', None)
 
@@ -38,28 +32,12 @@ def user_home_url():
 
 @app.route('/')
 def root():
-    """Root endpoint (/)
-    
-    Methods:
-    - get: Redirects guests to the login page, and redirects logged-in users to
-        their own role-specific homepage.
-    """
+
     return redirect(user_home_url())
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Login page endpoint.
 
-    Methods:
-    - get: Renders the login page.
-    - post: Attempts to log the user in using the credentials supplied via the
-        login form, and either:
-        - Redirects the user to their role-specific homepage (if successful)
-        - Renders the login page again with an error message (if unsuccessful).
-    
-    If the user is already logged in, both get and post requests will redirect
-    to their role-specific homepage.
-    """
     if 'loggedin' in session:
          return redirect(user_home_url())
 
@@ -70,13 +48,7 @@ def login():
 
         # Attempt to validate the login details against the database.
         with db.get_cursor() as cursor:
-            # Try to retrieve the account details for the specified username.
-            #
-            # Note: we use a Python multiline string (triple quote) here to
-            # make the query more readable in source code. This is just a style
-            # choice: the line breaks are ignored by MySQL, and it would be
-            # equally valid to put the whole SQL statement on one line like we
-            # do at the beginning of the `signup` function.
+
             cursor.execute('''
                            SELECT user_id, username, password_hash, role, status
                            FROM user
@@ -85,20 +57,10 @@ def login():
             account = cursor.fetchone()
             
             if account is not None:
-                # We found a matching account: now we need to check whether the
-                # password they supplied matches the hash in our database.
                 password_hash = account['password_hash']
                 
                 if flask_bcrypt.check_password_hash(password_hash, password):
-                    # Password is correct. Save the user's ID, username, and role
-                    # as session data, which we can access from other routes to
-                    # determine who's currently logged in.
-                    # 
-                    # Users can potentially see and edit these details using their
-                    # web browser. However, the session cookie is signed with our
-                    # app's secret key. That means if they try to edit the cookie
-                    # to impersonate another user, the signature will no longer
-                    # match and Flask will know the session data is invalid.
+
                     if account['status'] == 'inactive':
                         flash('Your account is deactivated. Please contact the administrator.', 'danger')
                         return redirect(user_home_url())
@@ -110,32 +72,15 @@ def login():
 
                     return redirect(user_home_url())
                 else:
-                    # Password is incorrect. Re-display the login form, keeping
-                    # the username provided by the user so they don't need to
-                    # re-enter it. We also set a `password_invalid` flag that
-                    # the template uses to display a validation message.
+
                     return render_template('login.html',
                                            username=username,
                                            password_invalid=True)
             else:
-                # We didn't find an account in the database with this username.
-                # Re-display the login form, keeping the username so the user
-                # can see what they entered (otherwise, they might just keep
-                # trying the same thing). We also set a `username_invalid` flag
-                # that tells the template to display an appropriate message.
-                #
-                # Note: In this example app, we tell the user if the user
-                # account doesn't exist. Many websites (e.g. Google, Microsoft)
-                # do this, but other sites display a single "Invalid username
-                # or password" message to prevent an attacker from determining
-                # whether a username exists or not. Here, we accept that risk
-                # to provide more useful feedback to the user.
                 return render_template('login.html', 
                                        username=username,
                                        username_invalid=True)
 
-    # This was a GET request, or an invalid POST (no username and/or password),
-    # so we just render the login form with no pre-populated details or flags.
     return render_template('login.html')
 
 
@@ -146,21 +91,10 @@ Image_Ext = {'png', 'jpg', 'jpeg'}
 def allowedfile(filename, allowedext):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowedext
 
+# signup
 @app.route('/signup', methods=['GET','POST'])
-
 def signup():
-    """Signup (registration) page endpoint.
 
-    Methods:
-    - get: Renders the signup page.
-    - post: Attempts to create a new user account using the details supplied
-        via the signup form, then renders the signup page again with a welcome
-        message (if successful) or one or more error message(s) explaining why
-        signup could not be completed.
-
-    If the user is already logged in, both get and post requests will redirect
-    to their role-specific homepage.
-    """
     if 'loggedin' in session:
          return redirect(user_home_url())
     
