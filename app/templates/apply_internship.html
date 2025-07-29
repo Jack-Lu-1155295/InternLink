@@ -27,7 +27,7 @@
                 <p><strong>Course:</strong> {{ student_info.course or 'N/A' }}</p>
                 <p><strong>Current Resume:</strong>
                     {% if student_info.resume_path %}
-                        <a href="{{ url_for('static', filename=student_info.resume_path.replace('app/static/', '')) }}" target="_blank">View</a>
+                        <a href="{{ url_for('static', filename=student_info.resume_path) }}" target="_blank">View</a>
                     {% else %}
                         Not uploaded
                     {% endif %}

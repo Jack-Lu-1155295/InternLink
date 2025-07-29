@@ -3,7 +3,7 @@
 {% set active_page = 'profile' %}
 {% block content %}
 <section class="container my-5">
-    <h2 class="text-center mb-4">Student Profile</h2>
+    <h2 class="text-center mb-4">{{user.full_name}} Profile</h2>
     <form method="POST" enctype="multipart/form-data" class="row g-3">
         <div class="col-md-6">
             <label for="full_name" class="form-label">Full Name</label>
@@ -36,7 +36,7 @@
             <input type="file" class="form-control" id="resume" name="resume" accept=".pdf">
             {% if profile.resume_path %}
                 <small class="form-text text-muted mt-1">
-                    Current: <a href="{{ url_for('static', filename= profile.resume_path.replace('app/static/', '')) }}" target="_blank">View Current Resume</a>
+                    Current: <a href="{{ url_for('static', filename= profile.resume_path) }}" target="_blank">View Current Resume</a>
                 </small>
             {% endif %}
         </div>

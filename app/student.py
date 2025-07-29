@@ -109,9 +109,7 @@ def apply_internship(internship_id):
      if request.method == 'POST':
         cover_letter = request.form.get('cover_letter', '') or None
         resume_file = request.files.get('resume') or None
-
-        resume_path = student_info['resume_path'] or None 
-        
+       
         if resume_file and resume_file.filename:
           if allowedfile(resume_file.filename, Resume_Ext):
                max_resume_size = 5 * 1024 * 1024
@@ -126,13 +124,16 @@ def apply_internship(internship_id):
                else:
                     ext = resume_file.filename.rsplit('.', 1)[1].lower()
                     filename = secure_filename(f"resume_{session['username']}.{ext}")
-                    resume_path = os.path.join('app', 'static', 'resumes', filename).replace('\\', '/')
-                    resume_file.save(resume_path)
+                    relative_path = f"resumes/{filename}"
+                    abs_path = os.path.join(app.root_path, 'static', relative_path)
+
+                    # save file and update db
+                    resume_file.save(abs_path)
 
                     try:
                          cursor.execute("""
                          UPDATE student SET resume_path = %s WHERE student_id = %s
-                         """, (resume_path, student_id))
+                         """, (relative_path, student_id))
                          db.get_db().commit()
                     except Exception as e:
                          print("Resume path update error:", e)
@@ -214,14 +215,17 @@ def student_profile():
                          return render_template ('student_profile.html', user=user, profile=profile)
 
                     else:
+                         # file name generation
                          ext = profile_image_file.filename.rsplit('.',1)[1].lower()
                          filename = secure_filename(f"image_{user['username']}.{ext}")
-                         profile_image = os.path.join('app', 'static','profile_images', filename).replace('\\', '/')
-                         profile_image_file.save(profile_image)          
+                         relative_path = f"profile_images/{filename}"
+                         abs_path = os.path.join(app.root_path, 'static', relative_path) 
+                         # save file and update db
+                         profile_image_file.save(abs_path)          
                          try:
                               cursor.execute("""
                               UPDATE user SET profile_image = %s WHERE user_id = %s
-                              """, (profile_image, user_id))
+                              """, (relative_path, user_id))
                               db.get_db().commit()
                               flash('Your profile has been updated successfully.', 'success')
                          
@@ -243,15 +247,19 @@ def student_profile():
                          return render_template('student_profile.html', user=user, profile=profile)
                     
                     else:
+                         # get filename created
                          ext = resume_file.filename.rsplit('.', 1)[1].lower()
                          filename = secure_filename(f"resume_{session['username']}.{ext}")
-                         resume_path = os.path.join('app', 'static', 'resumes', filename).replace('\\', '/')
-                         resume_file.save(resume_path)
+                         relative_path = f"resumes/{filename}"
+                         abs_path = os.path.join(app.root_path, 'static', relative_path)
+
+                         # save file and update db
+                         resume_file.save(abs_path)
 
                          try:
                               cursor.execute("""
                               UPDATE student SET resume_path = %s WHERE user_id = %s
-                              """, (resume_path, user_id))
+                              """, (relative_path, user_id))
                               db.get_db().commit()
                               flash('Your profile has been updated successfully.', 'success')
                               

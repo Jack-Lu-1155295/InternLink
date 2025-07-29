@@ -81,12 +81,14 @@ def employer_profile():
                     else:
                          ext = profile_image_file.filename.rsplit('.',1)[1].lower()
                          filename = secure_filename(f"image_{user['username']}.{ext}")
-                         profile_image = os.path.join('app', 'static','profile_images', filename).replace('\\', '/')
-                         profile_image_file.save(profile_image)          
+                         relative_path = f"profile_images/{filename}"
+                         abs_path = os.path.join(app.root_path, 'static', relative_path)
+
+                         profile_image_file.save(abs_path)          
                          try:
                               cursor.execute("""
                               UPDATE user SET profile_image = %s WHERE user_id = %s
-                              """, (profile_image, user_id))
+                              """, (relative_path, user_id))
                               db.get_db().commit()
                               flash('Your profile has been updated successfully.', 'success')
                          
@@ -110,13 +112,15 @@ def employer_profile():
                else:
                     ext = logo_file.filename.rsplit('.', 1)[1].lower()
                     filename = secure_filename(f"logo_{user_id}.{ext}")
-                    logo_path = os.path.join('app', 'static', 'logos', filename).replace('\\', '/')
-                    logo_file.save(logo_path)
+                    relative_path = f"logos/{filename}"
+                    abs_path = os.path.join(app.root_path, 'static', relative_path)
+
+                    logo_file.save(abs_path)
 
                     try:
                          cursor.execute("""
                               UPDATE employer SET logo_path = %s WHERE user_id = %s
-                              """, (logo_path, user_id))  
+                              """, (relative_path, user_id))  
                          db.get_db().commit()
                          flash('Your company logo has been updated successfully.', 'success')
 

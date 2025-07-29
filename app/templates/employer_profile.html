@@ -42,7 +42,7 @@
             <input type="file" class="form-control" id="logo" name="logo" accept=".jpg,.jpeg,.png">
             {% if profile.logo_path %}
                 <small class="form-text text-muted mt-1">
-                    Current: <img src="{{ url_for('static', filename = profile.logo_path.replace('app/static/', '')) }}" alt="Company Logo" style="max-height: 100px;" class="ms-2">
+                    Current: <img src="{{ url_for('static', filename = profile.logo_path) }}" alt="Company Logo" style="max-height: 100px;" class="ms-2">
                 </small>
             {% endif %}
         </div>

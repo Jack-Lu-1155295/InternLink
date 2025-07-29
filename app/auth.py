@@ -195,8 +195,10 @@ def signup():
                 else:
                     ext = resume_file.filename.rsplit('.',1)[1].lower()
                     filename = secure_filename(f"resume_{username}.{ext}")
-                    resume_path = os.path.join('app', 'static', 'resumes', filename).replace('\\', '/')
-                    resume_file.save(resume_path)
+                    resume_relative_path = f"resumes/{filename}"
+                    resume_abs_path = os.path.join(app.root_path, 'static', resume_relative_path)
+
+                    resume_file.save(resume_abs_path)
             else:
                 resume_error = 'You can only upload your resume in PDF format.' 
 
@@ -215,8 +217,9 @@ def signup():
                 else:
                     ext = profile_image_file.filename.rsplit('.',1)[1].lower()
                     filename = secure_filename(f"image_{username}.{ext}")
-                    profile_image = os.path.join('app', 'static','profile_images', filename).replace('\\', '/')
-                    profile_image_file.save(profile_image)
+                    pfimage_relative_path = f"profile_images/{filename}"
+                    pfimage_abs_path = os.path.join(app.root_path, 'static', pfimage_relative_path).replace('\\', '/')
+                    profile_image_file.save(pfimage_abs_path)
             else:
                 profile_image_error = 'Only image files (png, jpg, jpeg) are allowed.'
 
@@ -257,14 +260,14 @@ def signup():
                 cursor.execute('''
                     INSERT INTO user (username, full_name, email, password_hash, profile_image)
                     VALUES (%s, %s, %s, %s, %s);
-                ''', (username, full_name, email, password_hash, profile_image))
+                ''', (username, full_name, email, password_hash, pfimage_relative_path))
             
             # Insert into student table
                 user_id = cursor.lastrowid
                 cursor.execute('''
                     INSERT INTO student (user_id, university, course, resume_path)
                     VALUES (%s, %s, %s, %s);
-                ''', (user_id, university, course, resume_path))
+                ''', (user_id, university, course, resume_relative_path))
 
         except Exception:
             return render_template('signup.html', error="Database error, failed to create account.")

@@ -74,13 +74,14 @@ def admin_profile():
                     else:
                          ext = profile_image_file.filename.rsplit('.',1)[1].lower()
                          filename = secure_filename(f"image_{user['username']}.{ext}")
-                         profile_image = os.path.join('app', 'static','profile_images', filename).replace('\\', '/')
-                         profile_image_file.save(profile_image)
+                         relative_path = f"profile_images/{filename}"
+                         abs_path = os.path.join(app.root_path, 'static', relative_path)
+                         profile_image_file.save(abs_path)
 
                          try:
                               cursor.execute("""
                               UPDATE user SET profile_image = %s WHERE user_id = %s
-                              """, (profile_image, user_id))
+                              """, (relative_path, user_id))
                               db.get_db().commit()
                               flash('Your profile has been updated successfully.', 'success')
                          

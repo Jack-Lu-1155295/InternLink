@@ -12,7 +12,7 @@
 
             {# Company Logo #}
             {% if profile.logo_path %}
-                <img src="{{ url_for('static', filename=profile.logo_path.replace('app/static/', '')) }}"
+                <img src="{{ url_for('static', filename=profile.logo_path) }}"
                      class="img-fluid mb-3 rounded"
                      alt="Company Logo"
                      style="max-height: 150px;">
