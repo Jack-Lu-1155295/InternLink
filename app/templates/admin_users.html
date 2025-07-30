@@ -7,6 +7,9 @@
 
     <!-- Filter Form -->
     <form method="GET" class="row g-3 mb-4">
+        <div class="col-md-2">
+            <input type="text" class="form-control" name="username" placeholder="Username" value="{{ filters.username }}">
+        </div>
         <div class="col-md-3">
             <input type="text" class="form-control" name="first_name" placeholder="First Name" value="{{ filters.first_name }}">
         </div>
@@ -28,8 +31,9 @@
                 <option value="inactive" {{ 'selected' if filters.status == 'inactive' else '' }}>Inactive</option>
             </select>
         </div>
-        <div class="col-md-2 d-grid">
-            <button type="submit" class="btn btn-primary">Filter</button>
+        <div class="col-md-2 text-center">
+            <button type="submit" class="btn btn-success">Filter</button>
+            <a href="{{ url_for('user_management') }}" class="btn btn-secondary">Clear</a>
         </div>
     </form>
 
@@ -44,7 +48,7 @@
                     <th>Email</th>
                     <th>Role</th>
                     <th>Status</th>
-                    <th class="text-center">Change Status</th>
+                    <th class="text-center">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -57,19 +61,22 @@
                     <td>{{ user.role }}</td>
                     <td>{{ user.status }}</td>
                     <td class="text-center">
-                        {% if user.status == 'active' %}
-                            <form method="POST" action="{{ url_for('user_management') }}">
-                                <input type="hidden" name="user_id" value="{{ user.user_id }}">
-                                <input type="hidden" name="new_status" value="inactive">
-                                <button type="submit" class="btn btn-sm btn-warning">Deactivate</button>
-                            </form>
-                        {% else %}
-                            <form method="POST" action="{{ url_for('user_management') }}">
-                                <input type="hidden" name="user_id" value="{{ user.user_id }}">
-                                <input type="hidden" name="new_status" value="active">
-                                <button type="submit" class="btn btn-sm btn-success">Activate</button>
-                            </form>
-                        {% endif %}
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <a href="{{ url_for('admin_view_user_profile', user_id=user.user_id) }}" class="btn btn-sm btn-outline-success">View Profile</a>       
+                            {% if user.status == 'active' %}
+                                <form method="POST" action="{{ url_for('user_management') }}">
+                                    <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                                    <input type="hidden" name="new_status" value="inactive">
+                                    <button type="submit" class="btn btn-sm btn-warning">Deactivate</button>
+                                </form>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('user_management') }}">
+                                    <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                                    <input type="hidden" name="new_status" value="active">
+                                    <button type="submit" class="btn btn-sm btn-success">Activate</button>
+                                </form>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% else %}

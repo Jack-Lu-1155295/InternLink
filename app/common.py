@@ -3,7 +3,7 @@ from app import db
 from flask import redirect, render_template, request, session, url_for, flash
 from app.db import get_cursor
 from flask_bcrypt import Bcrypt
-from app.utils import login_required
+from app.utils import login_required, is_strong_password
 
 bcrypt = Bcrypt(app)
 
@@ -193,8 +193,8 @@ def change_password():
         elif bcrypt.check_password_hash(result['password_hash'], new_password):
             flash("New password cannot be the same as the current password.", "warning")
             return render_template('change_password.html', user=user)
-        elif len(new_password) < 8:
-            flash("New password must be at least 8 characters.", "warning")
+        elif not is_strong_password(new_password):
+            flash("Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character @$!%*?&.", "warning")
             return render_template('change_password.html', user=user)
         
         # update password
@@ -207,7 +207,7 @@ def change_password():
         
             if role == 'student':
                 return redirect(url_for('student_home'))
-            if role == 'emplyer':
+            if role == 'employer':
                 return redirect(url_for('employer_home'))
             if role == 'admin':
                 return redirect(url_for('admin_home'))

@@ -4,30 +4,64 @@
 {% block content %}
 <section class="container my-5">
     <h2 class="text-center mb-4">My Profile</h2>
-    <form method="POST" enctype="multipart/form-data" class="row g-3">
-        
-        <!-- Full Name -->
+
+    <!-- Profile Info Update -->
+    <form method="POST" action="{{ url_for('admin_profile') }}" class="row g-3 mb-4" id="profileForm">
+        <input type="hidden" name="form_type" value="profile_info">
         <div class="col-md-6">
             <label for="full_name" class="form-label">Full Name</label>
             <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name or '' }}" required>
+            {% if full_name_error %}
+                <div class="text-danger small">{{ full_name_error }}</div>
+            {% endif %}
         </div>
-
-        <!-- Email -->
         <div class="col-md-6">
             <label for="email" class="form-label">Email</label>
-            <input type="email" name="email", required class="form-control" value="{{ user.email or '' }}" required>
+            <input type="email" class="form-control" id="email" name="email" value="{{ user.email or '' }}" required>
+            {% if email_error %}
+                <div class="text-danger small">{{ email_error }}</div>
+            {% endif %}
         </div>
-
-        <!-- Profile Image Upload -->
-        <div class="mb-3">
-          <label for="profile_image" class="form-label fw-semibold">Upload Profile Image (PNG, JPG, JPEG - max 1MB)</label>
-          <input type="file" class="form-control" 
-          id="profile_image" name="profile_image" accept="image/*">
-        </div>        
-
         <div class="col-12 text-end">
-            <button type="submit" class="btn btn-primary">Update Profile</button>
+            <button type="submit" class="btn btn-success">Update Info</button>
         </div>
     </form>
+
+    <!-- Profile Image Update -->
+    <form method="POST" action="{{ url_for('admin_profile') }}" enctype="multipart/form-data" class="row g-3 mb-4" id="imageForm">
+        <input type="hidden" name="form_type" value="profile_image">
+        <div class="col-12">
+            <label for="profile_image" class="form-label fw-semibold">Upload Profile Image (PNG, JPG, JPEG - max 1MB)</label>
+            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+            {% if profile_image_error %}
+                <div class="text-danger small mt-1">{{ profile_image_error }}</div>
+            {% endif %}
+        </div>
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-success">Update Image</button>
+        </div>  
+    </form>
+
+    <!-- Image removal -->
+    {% if user.profile_image %}
+    <div class="row mb-3">
+        <div class="col-12 text-center">
+            <img src="{{ url_for('static', filename=user.profile_image) }}"
+                alt="Profile Image"
+                class="rounded-circle img-thumbnail"
+                style="width:100px; height:100px; object-fit:cover;">
+        </div>
+        <div class="col-12 text-center mt-2">
+            <form method="POST" action="{{ url_for('admin_profile') }}" style="display:inline;">
+                <input type="hidden" name="form_type" value="remove_profile_image">
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Are you sure you want to remove your profile image?');">
+                    &#128465; Remove Profile Image (Back to Default)
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 </section>
+
 {% endblock %}
