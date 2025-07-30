@@ -76,28 +76,29 @@ INSERT INTO `student` (user_id, university, course, resume_path) VALUES
 -- ======================
 -- 6. Add Internships (20)
 -- ======================
-INSERT INTO `internship` (company_id, title, description, location, duration, skills_required, deadline, stipend, number_of_opening, additonal_req) VALUES
-(1, 'Software Developer Intern', 'Assist in developing and testing new web applications.', 'Auckland', '3 months', 'Python, Flask, Git', '2025-08-01', '$1000', 2, 'Basic coding experience required'),
-(1, 'Frontend Developer Intern', 'Support frontend development team building responsive UIs.', 'Remote', '3 months', 'HTML, CSS, ReactJS', '2025-08-10', '$900', 1, 'Knowledge of JavaScript frameworks'),
-(2, 'Healthcare Data Analyst Intern', 'Analyze healthcare datasets and prepare visual reports.', 'Christchurch', '6 months', 'SQL, PowerBI', '2025-09-01', '$1500', 1, 'Strong analytical skills'),
-(3, 'Education Platform Support Intern', 'Provide technical support to education software users.', 'Wellington', '4 months', 'Customer service, SQL basics', '2025-07-30', '$800', 3, 'Good communication skills'),
-(4, 'Renewable Energy Analyst Intern', 'Research and analyze renewable energy markets.', 'Hamilton', '6 months', 'Excel, Research methods', '2025-08-10', '$1200', 2, 'Knowledge of energy markets preferred'),
-(5, 'Marketing Intern', 'Assist with social media campaigns for food products.', 'Napier', '3 months', 'Canva, Instagram Marketing', '2025-08-05', '$900', 2, 'Creative mindset'),
-(1, 'Database Management Intern', 'Help maintain and improve company databases.', 'Auckland', '3 months', 'MySQL, Data modeling', '2025-08-15', '$1000', 1, 'Basic DB knowledge required'),
-(2, 'Mobile App Development Intern', 'Support development of healthcare mobile apps.', 'Christchurch', '4 months', 'Flutter, Dart', '2025-08-20', '$1100', 1, 'Interest in mobile app development'),
-(3, 'Business Analyst Intern', 'Conduct business process analysis for education clients.', 'Wellington', '4 months', 'Excel, PowerPoint', '2025-09-01', '$950', 2, 'Strong documentation skills'),
-(4, 'Graphic Design Intern', 'Design marketing materials for renewable products.', 'Hamilton', '3 months', 'Photoshop, Illustrator', '2025-08-25', '$700', 1, 'Portfolio required'),
-(5, 'Research Assistant Intern', 'Assist in agricultural research experiments.', 'Napier', '6 months', 'Lab experience preferred', '2025-08-12', '$1000', 1, NULL),
-(1, 'DevOps Intern', 'Support CI/CD pipeline setup and automation.', 'Auckland', '3 months', 'Docker, Jenkins', '2025-08-18', '$1200', 2, 'Linux knowledge preferred'),
-(2, 'HR Intern', 'Assist HR team in recruitment and onboarding.', 'Christchurch', '3 months', 'MS Office, Communication', '2025-08-22', '$850', 2, NULL),
-(3, 'Sales Intern', 'Assist sales team with client outreach.', 'Wellington', '3 months', 'CRM tools, Excel', '2025-08-30', '$900', 1, NULL),
-(4, 'Cybersecurity Intern', 'Assist security team with monitoring and testing.', 'Hamilton', '4 months', 'Security tools, Linux', '2025-08-28', '$1300', 1, 'Interest in cybersecurity'),
-(5, 'Food Quality Intern', 'Assist in food quality testing and documentation.', 'Napier', '3 months', 'Food Safety Standards', '2025-08-19', '$950', 1, NULL),
-(1, 'Machine Learning Intern', 'Support ML model training and evaluation.', 'Auckland', '4 months', 'Python, TensorFlow', '2025-08-21', '$1500', 2, 'Knowledge of ML basics'),
-(2, 'Cloud Computing Intern', 'Assist with AWS infrastructure management.', 'Christchurch', '4 months', 'AWS, Linux', '2025-08-23', '$1400', 1, NULL),
-(3, 'UX Design Intern', 'Assist UI/UX team in design research and prototyping.', 'Wellington', '3 months', 'Figma, Adobe XD', '2025-08-24', '$1000', 1, NULL),
-(4, 'IoT Intern', 'Assist IoT team with device integration testing.', 'Hamilton', '4 months', 'Arduino, C programming', '2025-08-26', '$1100', 1, NULL);
-
+INSERT INTO `internship` (
+  company_id, title, description, location, duration, category, skills_required, deadline, stipend, number_of_opening, additonal_req
+) VALUES
+(1, 'Software Developer Intern', 'Assist in developing and testing new web applications.', 'Auckland', '3 months', 'Software Development', 'Python, Flask, Git', '2025-08-01', '$1000', 2, 'Basic coding experience required'),
+(1, 'Frontend Developer Intern', 'Support frontend development team building responsive UIs.', 'Remote', '3 months', 'Software Development', 'HTML, CSS, ReactJS', '2025-08-10', '$900', 1, 'Knowledge of JavaScript frameworks'),
+(2, 'Healthcare Data Analyst Intern', 'Analyze healthcare datasets and prepare visual reports.', 'Christchurch', '6 months', 'Data Science', 'SQL, PowerBI', '2025-09-01', '$1500', 1, 'Strong analytical skills'),
+(3, 'Education Platform Support Intern', 'Provide technical support to education software users.', 'Wellington', '4 months', 'Customer Support', 'Customer service, SQL basics', '2025-07-30', '$800', 3, 'Good communication skills'),
+(4, 'Renewable Energy Analyst Intern', 'Research and analyze renewable energy markets.', 'Hamilton', '6 months', 'Research & Analysis', 'Excel, Research methods', '2025-08-10', '$1200', 2, 'Knowledge of energy markets preferred'),
+(5, 'Marketing Intern', 'Assist with social media campaigns for food products.', 'Napier', '3 months', 'Marketing', 'Canva, Instagram Marketing', '2025-08-05', '$900', 2, 'Creative mindset'),
+(1, 'Database Management Intern', 'Help maintain and improve company databases.', 'Auckland', '3 months', 'Data Management', 'MySQL, Data modeling', '2025-08-15', '$1000', 1, 'Basic DB knowledge required'),
+(2, 'Mobile App Development Intern', 'Support development of healthcare mobile apps.', 'Christchurch', '4 months', 'Mobile Development', 'Flutter, Dart', '2025-08-20', '$1100', 1, 'Interest in mobile app development'),
+(3, 'Business Analyst Intern', 'Conduct business process analysis for education clients.', 'Wellington', '4 months', 'Business Analysis', 'Excel, PowerPoint', '2025-09-01', '$950', 2, 'Strong documentation skills'),
+(4, 'Graphic Design Intern', 'Design marketing materials for renewable products.', 'Hamilton', '3 months', 'Design', 'Photoshop, Illustrator', '2025-08-25', '$700', 1, 'Portfolio required'),
+(5, 'Research Assistant Intern', 'Assist in agricultural research experiments.', 'Napier', '6 months', 'Research', 'Lab experience preferred', '2025-08-12', '$1000', 1, NULL),
+(1, 'DevOps Intern', 'Support CI/CD pipeline setup and automation.', 'Auckland', '3 months', 'DevOps', 'Docker, Jenkins', '2025-08-18', '$1200', 2, 'Linux knowledge preferred'),
+(2, 'HR Intern', 'Assist HR team in recruitment and onboarding.', 'Christchurch', '3 months', 'Human Resources', 'MS Office, Communication', '2025-08-22', '$850', 2, NULL),
+(3, 'Sales Intern', 'Assist sales team with client outreach.', 'Wellington', '3 months', 'Sales', 'CRM tools, Excel', '2025-08-30', '$900', 1, NULL),
+(4, 'Cybersecurity Intern', 'Assist security team with monitoring and testing.', 'Hamilton', '4 months', 'Cybersecurity', 'Security tools, Linux', '2025-08-28', '$1300', 1, 'Interest in cybersecurity'),
+(5, 'Food Quality Intern', 'Assist in food quality testing and documentation.', 'Napier', '3 months', 'Quality Assurance', 'Food Safety Standards', '2025-08-19', '$950', 1, NULL),
+(1, 'Machine Learning Intern', 'Support ML model training and evaluation.', 'Auckland', '4 months', 'Artificial Intelligence', 'Python, TensorFlow', '2025-08-21', '$1500', 2, 'Knowledge of ML basics'),
+(2, 'Cloud Computing Intern', 'Assist with AWS infrastructure management.', 'Christchurch', '4 months', 'Cloud Computing', 'AWS, Linux', '2025-08-23', '$1400', 1, NULL),
+(3, 'UX Design Intern', 'Assist UI/UX team in design research and prototyping.', 'Wellington', '3 months', 'Design', 'Figma, Adobe XD', '2025-08-24', '$1000', 1, NULL),
+(4, 'IoT Intern', 'Assist IoT team with device integration testing.', 'Hamilton', '4 months', 'IoT', 'Arduino, C programming', '2025-08-26', '$1100', 1, NULL);
 -- ======================
 -- 7. Add Applications (20)
 -- ======================

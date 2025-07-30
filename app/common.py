@@ -3,37 +3,37 @@ from app import db
 from flask import redirect, render_template, request, session, url_for, flash
 from app.db import get_cursor
 from flask_bcrypt import Bcrypt
+from app.utils import login_required
+
+bcrypt = Bcrypt(app)
+
+# user information
+def get_user(cursor, user_id):
+    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+    return cursor.fetchone()
 
 @app.route('/browseinternships')
-def browse_internships():
-    # only student and admin can access
-    if 'loggedin' not in session:
-        return redirect(url_for('login'))
-    
+@login_required()
+def browse_internships():   
     role = session.get('role')
     user_id = session['user_id']
     cursor = get_cursor()
-
-    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
-    user = cursor.fetchone()
+    user = get_user(cursor, user_id)
     
-    if session['role'] not in ['student', 'employer', 'admin']:
-        return render_template('access_denied.html'), 403
-
-    # get required information 
+    # Filter  
     location = request.args.get('location', '')
     duration = request.args.get('duration', '')
-    skills = request.args.get('skills', '')
+    category = request.args.get('category', '')
 
     query = """
         SELECT i.*, e.company_name
         FROM internship i
         JOIN employer e ON i.company_id = e.emp_id
         WHERE i.location LIKE %s AND i.duration LIKE %s AND
-              (i.skills_required LIKE %s OR i.title LIKE %s OR i.description LIKE %s)
+              (i.category LIKE %s OR i.title LIKE %s OR i.description LIKE %s)
     """
 
-    filters = (f"%{location}%", f"%{duration}%", f"%{skills}%", f"%{skills}%", f"%{skills}%")
+    filters = (f"%{location}%", f"%{duration}%", f"%{category}%", f"%{category}%", f"%{category}%")
 
     # only show internships posted by the logged in employer
     if role == 'employer':
@@ -46,21 +46,14 @@ def browse_internships():
     cursor.execute(query, filters)
     internships = cursor.fetchall()
     cursor.close()
-
     return render_template('browse_internships.html', user=user, internships=internships)
 
 @app.route('/applications', methods=['GET', 'POST'])
+@login_required()
 def view_applications():
-    # check login status
-    if 'loggedin' not in session:
-        return redirect(url_for('login'))
-    
     user_id = session['user_id']
     cursor = get_cursor()
-
-    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
-    user = cursor.fetchone()
-
+    user = get_user(cursor, user_id)
     role = session.get('role')
 
     name_query=request.args.get('name', '')
@@ -166,19 +159,14 @@ def view_applications():
         cursor.close()
         return render_template('employer_applications.html', user=user, applications=applications)
 
-bcrypt = Bcrypt(app)
-
 @app.route('/change_password', methods=['GET', 'POST'])
+@login_required()
 def change_password():
-    if 'loggedin' not in session:
-        return redirect(url_for('login'))
     
     user_id = session['user_id']
     cursor = get_cursor()
     role = session.get('role')
-
-    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
-    user = cursor.fetchone()
+    user = get_user(cursor, user_id)
    
     if request.method == "POST":
         current_password = request.form.get('current_password')
@@ -215,14 +203,14 @@ def change_password():
             cursor.execute("UPDATE user SET password_hash = %s WHERE user_id = %s", (hashed, user_id))
             db.get_db().commit()
             flash("Password changed successfully.", "success")
-        cursor.close()
-    
-        if role == 'student':
-            return redirect(url_for('student_home'))
-        if role == 'emplyer':
-            return redirect(url_for('employer_home'))
-        if role == 'admin':
-            return redirect(url_for('admin_home'))
+            cursor.close()
+        
+            if role == 'student':
+                return redirect(url_for('student_home'))
+            if role == 'emplyer':
+                return redirect(url_for('employer_home'))
+            if role == 'admin':
+                return redirect(url_for('admin_home'))
 
     cursor.close()
     return render_template('change_password.html', user=user)

@@ -2,9 +2,10 @@ from app import app
 from app import db
 from flask import redirect, render_template, request, session, url_for, flash
 from flask_bcrypt import Bcrypt
+from app.utils import handle_file_upload, is_strong_password, is_valid_email, is_valid_full_name
+from app.config import UPLOAD_CONFIG
 import re
 import os
-from werkzeug.utils import secure_filename
 
 # Create an instance of the Bcrypt class, which we'll be using to hash user
 # passwords during login and registration.
@@ -83,14 +84,6 @@ def login():
 
     return render_template('login.html')
 
-
-# Define allowed type of files
-Resume_Ext = {'pdf'}
-Image_Ext = {'png', 'jpg', 'jpeg'}
-
-def allowedfile(filename, allowedext):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowedext
-
 # signup
 @app.route('/signup', methods=['GET','POST'])
 def signup():
@@ -106,6 +99,7 @@ def signup():
         full_name = request.form.get('full_name', '')
         email = request.form.get('email', '')
         password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
         # Optional fields:
         university = request.form.get('university', '').strip() or None
         course = request.form.get('course', '').strip() or None
@@ -113,8 +107,6 @@ def signup():
         resume_file = request.files.get('resume') or None
         profile_image_file = request.files.get('profile_image') or None
 
-        resume_path = None
-        profile_image = None
         # We start by assuming that everything is okay. If we encounter any
         # errors during validation, we'll store an error message in one or more
         # of these variables so we can pass them through to the template.
@@ -145,88 +137,46 @@ def signup():
         elif not re.match(r'(?!.*\s)[A-Za-z0-9.]+', username):
             username_error = 'Your username can only contain letters, numbers, and periods (no spaces).'            
 
-        # Validate the new user's full name. 
-        if len(full_name) == 0:
-            full_name_error = 'Full name is required.'
-        elif len(full_name) > 100:
-            full_name_error = 'Your full name cannot exceed 100 characters.'
-        elif not re.fullmatch(r"[A-Za-z\s'-]+", full_name):
-            full_name_error = 'Your full name can only contain letters, spaces, hyphens, and apostrophes.'
-
-        # Validate the new user's email address. Note: The regular expression
-        # we use here isn't a perfect check for a valid address, but is
-        # sufficient for this example.
-        if len(email) > 100:
-            # As above, the user should never see this error under normal
-            # conditions because we set a maximum input length in the template.
-            email_error = 'Your email address cannot exceed 100 characters.'
-        elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-            email_error = 'Invalid email address.'
-                
-        # Validate password. Think about what other constraints might be useful
-        # here for security (e.g. requiring a certain mix of character types,
-        # or avoiding overly-common passwords). Make sure that you clearly
-        # communicate any rules to the user, either through hints on the signup
-        # page or with clear error messages here.
-        #
-        # Note: Unlike the username and email address, we don't enforce a
-        # maximum password length. Because we'll be storing a hash of the
-        # password in our database, and not the password itself, it doesn't
-        # matter how long a password the user chooses. Whether it's 8 or 800
-        # characters, the hash will always be the same length.
-        confirm_password=request.form.get('confirm_password','')
-        if len(password) < 8:
-            password_error = 'Please choose a longer password!'
+        # Validate the new user's full name and email address (via utils.py)
+        full_name_error = is_valid_full_name(full_name)
+        email_error = is_valid_email(email)
+        
+        # password strength validation via utils.py
+        password_strength_msg = is_strong_password(password)
+        if password_strength_msg:
+            password_error = password_strength_msg
         elif password != confirm_password:
             confirm_password_error = 'Passwords do not match'        
 
         # Resume handling
-        if resume_file and resume_file.filename:
-            if allowedfile(resume_file.filename, Resume_Ext):
-
-                max_resume_size = 5 * 1024 * 1024
-                resume_file.seek(0, os.SEEK_END)
-                resume_file_size = resume_file.tell()
-                resume_file.seek(0)
-                
-                if resume_file_size > max_resume_size:
-                    resume_error = "Resume file cannot exceed 5MB."
-                
-                else:
-                    ext = resume_file.filename.rsplit('.',1)[1].lower()
-                    filename = secure_filename(f"resume_{username}.{ext}")
-                    resume_relative_path = f"resumes/{filename}"
-                    resume_abs_path = os.path.join(app.root_path, 'static', resume_relative_path)
-
-                    resume_file.save(resume_abs_path)
-            else:
-                resume_error = 'You can only upload your resume in PDF format.' 
-
-
         resume_relative_path = None
-        pfimage_relative_path = None
-        
+        if resume_file and resume_file.filename:
+            cfg_resume = UPLOAD_CONFIG['resume']
+            resume_relative_path, resume_err = handle_file_upload(
+                resume_file, 
+                subfolder=cfg_resume['subfolder'],
+                username_or_id=username,
+                allowed_exts=cfg_resume['allowed_exts'],
+                max_size_bytes=cfg_resume['max_size'],
+                prefix=cfg_resume['prefix']
+            )
+            if resume_err:
+                resume_error = resume_err
+       
         # Profile Image handling
+        pfimage_relative_path = None
         if profile_image_file and profile_image_file.filename:
-            if allowedfile(profile_image_file.filename, Image_Ext):
-
-                max_image_size = 1 * 1024 * 1024
-                profile_image_file.seek(0, os.SEEK_END)
-                image_file_size = profile_image_file.tell()
-                profile_image_file.seek(0)
-
-                if image_file_size > max_image_size:
-                    profile_image_error = "Image cannot exceed 1MB."
-
-                else:
-                    ext = profile_image_file.filename.rsplit('.',1)[1].lower()
-                    filename = secure_filename(f"image_{username}.{ext}")
-                    pfimage_relative_path = f"profile_images/{filename}"
-                    pfimage_abs_path = os.path.join(app.root_path, 'static', pfimage_relative_path).replace('\\', '/')
-                    profile_image_file.save(pfimage_abs_path)
-            else:
-                profile_image_error = 'Only image files (png, jpg, jpeg) are allowed.'
-
+            cfg_img = UPLOAD_CONFIG['profile_image']
+            pfimage_relative_path, img_err=handle_file_upload(
+                profile_image_file,
+                subfolder=cfg_img['subfolder'],
+                username_or_id=username,
+                allowed_exts=cfg_img['allowed_exts'],
+                max_size_bytes=cfg_img['max_size'],
+                prefix=cfg_img['prefix']
+            )
+            if img_err:
+                profile_image_error = img_err
 
         if (username_error or email_error or password_error or confirm_password_error or full_name_error or resume_error or profile_image_error):
             # One or more errors were encountered, so send the user back to the

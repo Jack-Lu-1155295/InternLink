@@ -4,46 +4,80 @@
 {% block content %}
 <section class="container my-5">
     <h2 class="text-center mb-4">{{user.full_name}} Profile</h2>
-    <form method="POST" enctype="multipart/form-data" class="row g-3">
+
+    <!-- Profile Info Update -->
+    <form method="POST" action="{{ url_for('student_profile') }}" class="row g-3 mb-4" id="profileForm">
+        <input type="hidden" name="form_type" value="profile_info">
         <div class="col-md-6">
             <label for="full_name" class="form-label">Full Name</label>
             <input type="text" class="form-control" id="full_name" name="full_name" value="{{ profile.full_name or '' }}" required>
         </div>
-
         <div class="col-md-6">
             <label for="email" class="form-label">Email (read-only)</label>
             <input type="email" class="form-control" id="email" value="{{ profile.email or '' }}" readonly>
         </div>
-
         <div class="col-md-6">
             <label for="university" class="form-label">University</label>
             <input type="text" class="form-control" id="university" name="university" value="{{ profile.university or '' }}">
         </div>
-
         <div class="col-md-6">
             <label for="course" class="form-label">Course</label>
             <input type="text" class="form-control" id="course" name="course" value="{{ profile.course or '' }}">
         </div>
-        
-        <div class="mb-3">
-            <label for="profile_image" class="form-label fw-semibold">Upload Profile Image (PNG, JPG, JPEG - max 1MB)</label>
-            <input type="file" class="form-control" 
-            id="profile_image" name="profile_image" accept="image/*">
-        </div> 
+        <div class="col-12 text-end">
+            <button type="submit" id="profileUpdateBtn" class="btn btn-success">Update Info</button>
+        </div>
+    </form>
 
-        <div class="col-md-12">
+    <!-- Profile Image Update -->
+    <form method="POST" action="{{ url_for('student_profile') }}" enctype="multipart/form-data" class="row g-3 mb-4" id="imageForm">
+        <input type="hidden" name="form_type" value="profile_image">
+        <div class="col-12">
+            <label for="profile_image" class="form-label fw-semibold">Upload Profile Image (PNG, JPG, JPEG - max 1MB)</label>
+            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+        </div>
+        <div class="col-12 text-end">
+            <button type="submit" id="imageUpdateBtn" class="btn btn-success">Update Image</button>
+        </div>  
+    </form>
+
+    <!-- Image removal -->
+    {% if profile.profile_image %}
+    <div class="row mb-3">
+        <div class="col-12 text-center">
+            <img src="{{ url_for('static', filename=profile.profile_image) }}"
+                alt="Profile Image"
+                class="rounded-circle img-thumbnail"
+                style="width:100px; height:100px; object-fit:cover;">
+        </div>
+        <div class="col-12 text-center mt-2">
+            <form method="POST" action="{{ url_for('student_profile') }}" style="display:inline;">
+                <input type="hidden" name="form_type" value="remove_profile_image">
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Are you sure you want to remove your profile image?');">
+                    &#128465; Remove Profile Image (Back to Default)
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Resume Update -->
+    <form method="POST" action="{{ url_for('student_profile') }}" enctype="multipart/form-data" class="row g-3 mb-2" id="resumeForm">
+        <input type="hidden" name="form_type" value="resume">
+        <div class="col-12">
             <label for="resume" class="form-label">Resume (PDF only, max 5MB)</label>
             <input type="file" class="form-control" id="resume" name="resume" accept=".pdf">
             {% if profile.resume_path %}
                 <small class="form-text text-muted mt-1">
-                    Current: <a href="{{ url_for('static', filename= profile.resume_path) }}" target="_blank">View Current Resume</a>
+                    Current: <a href="{{ url_for('static', filename=profile.resume_path) }}" target="_blank">View Current Resume</a>
                 </small>
             {% endif %}
         </div>
-
         <div class="col-12 text-end">
-            <button type="submit" class="btn btn-primary">Update Profile</button>
+            <button type="submit" id="resumeUpdateBtn" class="btn btn-success">Update Resume</button>
         </div>
     </form>
 </section>
+
 {% endblock %}

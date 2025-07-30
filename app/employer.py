@@ -4,149 +4,122 @@ from flask import redirect, render_template, session, url_for, request, flash
 from app.db import get_cursor
 import os
 from werkzeug.utils import secure_filename
+from app.utils import login_required, handle_file_upload, remove_profile_image
+from app.config import UPLOAD_CONFIG
+
+# get user id and employer info
+def get_employer_user_and_profile(cursor, user_id):
+    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+    cursor.execute("SELECT * FROM employer WHERE user_id = %s", (user_id,))
+    profile = cursor.fetchone()
+    return user, profile
 
 @app.route('/employer/home')
+# only logged in employer can access
+@login_required('employer')
 def employer_home():
-     """employer Homepage endpoint.
-
-     Methods:
-     - get: Renders the homepage for the current employer user, or an "Access
-          Denied" 403: Forbidden page if the current user has a different role.
-
-     If the user is not logged in, requests will redirect to the login page.
-     """
-     if 'loggedin' not in session:
-          return redirect(url_for('login'))
-     elif session['role']!='employer':
-          return render_template('access_denied.html'), 403
      
      user_id = session['user_id']
      cursor = get_cursor()
-
-     cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
-     user = cursor.fetchone()
-     
-     cursor.execute("SELECT * FROM employer WHERE user_id = %s", (user_id,))
-     profile = cursor.fetchone()
+     user, profile = get_employer_user_and_profile(cursor, user_id)
      cursor.close()
-
      return render_template('employer_home.html', user=user, profile=profile)
 
-Image_Ext = {'png', 'jpg', 'jpeg'}
-
-def allowedfile(filename, allowedext):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowedext
 
 @app.route('/employer_profile', methods=['GET', 'POST'])
+@login_required('employer') # only logged in employer has access
 def employer_profile():
-    # logged in as employer
-    if 'loggedin' not in session or session.get('role') != 'employer':
-        return redirect(url_for('login'))
+     #Get user information
+     user_id = session['user_id']
+     cursor = get_cursor()
+     user, profile = get_employer_user_and_profile(cursor, user_id)
 
-    user_id = session['user_id']
-    cursor = get_cursor()
+     if request.method == 'POST':
+          form_type = request.form.get("form_type")
 
-    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
-    user = cursor.fetchone()
+          # update profile info
+          if form_type == 'profile_info':
+               full_name = request.form.get('full_name')
+               company_name = request.form.get('company_name')
+               company_description = request.form.get('company_description')
+               website = request.form.get('website')
 
-    if request.method == 'POST':
-          full_name = request.form.get('full_name')
-          company_name = request.form.get('company_name')
-          company_description = request.form.get('company_description')
-          website = request.form.get('website')
-          profile_image_file = request.files.get('profile_image') or None
-
-          # Update full name in user table
-          cursor.execute("UPDATE user SET full_name = %s WHERE user_id = %s", (full_name, user_id))
-
-          # Update employer information: company_name, description, website
-          cursor.execute("""
-               UPDATE employer SET company_name = %s, company_description = %s, website = %s 
-               WHERE user_id = %s
+               cursor.execute("UPDATE user SET full_name = %s WHERE user_id = %s", (full_name, user_id))
+               cursor.execute("""
+                    UPDATE employer SET company_name = %s, company_description = %s, website = %s 
+                    WHERE user_id = %s
                """, (company_name, company_description, website, user_id))
-
+               db.get_db().commit()
+               flash('Profile info updated successfully.', 'success')
+          
           # Profile Image handling
-          if profile_image_file and profile_image_file.filename:
-               if allowedfile(profile_image_file.filename, Image_Ext):
+          elif form_type == "profile_image":
+               profile_image_file = request.files.get('profile_image')
+               cfg_img = UPLOAD_CONFIG['profile_image']
+               profile_image_path, img_error = handle_file_upload(
+                    profile_image_file,          
+                    subfolder=cfg_img["subfolder"],
+                    username_or_id=user["username"],
+                    allowed_exts=cfg_img["allowed_exts"],
+                    max_size_bytes=cfg_img["max_size"],
+                    prefix=cfg_img["prefix"])
+               if img_error:
+                    flash(img_error, "danger")
+                    return render_template('employer_profile.html', user=user, profile=profile)
+               elif profile_image_path:
+                    cursor.execute("UPDATE user SET profile_image = %s WHERE user_id = %s", (profile_image_path, user_id))
+                    db.get_db().commit()
+                    flash('Profile image updated successfully.', 'success')
+                    # Refresh user/profile for instant update
+                    user, profile = get_employer_user_and_profile(cursor, user_id)
+                    cursor.close()
+                    return render_template('employer_profile.html', user=user, profile=profile)
 
-                    max_image_size = 1 * 1024 * 1024
-                    profile_image_file.seek(0, os.SEEK_END)
-                    image_file_size = profile_image_file.tell()
-                    profile_image_file.seek(0)
-
-                    if image_file_size > max_image_size:
-                         flash("Image cannot exceed 1MB.", "danger")
-                         return render_template ('employer_profile.html', user=user)
-
-                    else:
-                         ext = profile_image_file.filename.rsplit('.',1)[1].lower()
-                         filename = secure_filename(f"image_{user['username']}.{ext}")
-                         relative_path = f"profile_images/{filename}"
-                         abs_path = os.path.join(app.root_path, 'static', relative_path)
-
-                         profile_image_file.save(abs_path)          
-                         try:
-                              cursor.execute("""
-                              UPDATE user SET profile_image = %s WHERE user_id = %s
-                              """, (relative_path, user_id))
-                              db.get_db().commit()
-                              flash('Your profile has been updated successfully.', 'success')
-                         
-                         except Exception as e:
-                              flash('Failed to update profile image.','danger')
-                              return render_template('employer_profile.html', user=user)
-                         
-          # Logo upload
-          logo_file = request.files.get('logo')
-          logo_path = None
-          if logo_file and allowedfile(logo_file.filename, Image_Ext):
-               max_image_size = 1 * 1024 * 1024
-               logo_file.seek(0, os.SEEK_END)
-               image_file_size = logo_file.tell()
-               logo_file.seek(0)
-               
-               if image_file_size > max_image_size:
-                    flash('Image file exceeds 1MB size limit.', 'danger')
-                    return render_template('employer_profile.html', user=user, user_id=user_id, full_name=full_name, company_name=company_name, company_description=company_description, website=website)
-
+          # Profile image removal (back to default)
+          elif form_type == "remove_profile_image":
+               success, msg = remove_profile_image(
+                    cursor,
+                    user_id,
+                    user_table='user',
+                    image_column='profile_image',
+                    commit_func=lambda: db.get_db().commit()
+               )
+               if not success:
+                    flash(msg, 'danger')
+                    return render_template('employer_profile.html', user=user, profile=profile)
                else:
-                    ext = logo_file.filename.rsplit('.', 1)[1].lower()
-                    filename = secure_filename(f"logo_{user_id}.{ext}")
-                    relative_path = f"logos/{filename}"
-                    abs_path = os.path.join(app.root_path, 'static', relative_path)
+                    flash(msg, 'success')
+                    user, profile = get_employer_user_and_profile(cursor, user_id)
+                    cursor.close()
+                    return render_template('employer_profile.html', user=user, profile=profile)                    
 
-                    logo_file.save(abs_path)
-
-                    try:
-                         cursor.execute("""
-                              UPDATE employer SET logo_path = %s WHERE user_id = %s
-                              """, (relative_path, user_id))  
-                         db.get_db().commit()
-                         flash('Your company logo has been updated successfully.', 'success')
-
-                    except Exception as e:
-                         print("Logo path update error:", e)
-                         flash('Failed to update logo in database.','danger')
-                         return render_template('employer_profile.html', user=user, user_id=user_id, full_name=full_name, company_name=company_name, company_description=company_description, website=website)
-          else:
-               flash('Invalid logo format. Only JPG, PNG, JPEG less than 1 MB allowed.', 'danger')
-               return render_template('employer_profile.html', user=user, profile={
-                    'full_name': full_name,
-                    'email': session.get('email'),
-                    'company_name': company_name,
-                    'company_description': company_description,
-                    'website': website,
-                    'logo_path': None})
+          # Logo upload
+          elif form_type == "company_logo":
+               logo_file = request.files.get('logo')
+               logo_path = None
+               cfg_logo = UPLOAD_CONFIG['logo']
+               logo_path, logo_error = handle_file_upload(
+                    logo_file,
+                    subfolder=cfg_logo["subfolder"],
+                    username_or_id=user_id,  
+                    allowed_exts=cfg_logo["allowed_exts"],
+                    max_size_bytes=cfg_logo["max_size"],
+                    prefix=cfg_logo["prefix"]
+               )
+               if logo_error:
+                    flash(logo_error, "danger")
+                    return render_template('employer_profile.html', user=user, profile=profile)
+               elif logo_path:
+                    cursor.execute("UPDATE employer SET logo_path = %s WHERE user_id = %s", (logo_path, user_id))
+                    db.get_db().commit()
+                    flash('Company logo updated successfully.', 'success')
+                    user, profile = get_employer_user_and_profile(cursor, user_id)
+                    cursor.close()
+                    return render_template('employer_profile.html', user=user, profile=profile)
     
     # Fetch profile data
-    cursor.execute("""
-          SELECT u.full_name, u.email, u.profile_image,
-                    e.company_name, e.company_description, e.website, e.logo_path
-          FROM user u
-          JOIN employer e ON u.user_id = e.user_id
-          WHERE u.user_id = %s
-          """, (user_id,))
-    profile = cursor.fetchone()
-    cursor.close()
+     user, profile = get_employer_user_and_profile(cursor, user_id)
+     cursor.close()
 
-    return render_template('employer_profile.html', user=user, profile=profile)
+     return render_template('employer_profile.html', user=user, profile=profile)

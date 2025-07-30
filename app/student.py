@@ -5,50 +5,27 @@ from flask import request, flash
 from app.db import get_cursor
 from werkzeug.utils import secure_filename
 import os
+from app.utils import login_required, handle_file_upload, remove_profile_image
+from app.config import UPLOAD_CONFIG
+
+# get user id and student info
+def get_student_user_and_profile(cursor, user_id):
+    cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+    cursor.execute("""
+        SELECT u.full_name, u.email, u.profile_image, s.university, s.course, s.resume_path
+        FROM user u
+        JOIN student s ON u.user_id = s.user_id
+        WHERE u.user_id = %s
+    """, (user_id,))
+    profile = cursor.fetchone()
+    return user, profile
 
 @app.route('/student/home')
+# only logged in student can access
+@login_required('student')
 def student_home():
-     """student Homepage endpoint.
-
-     Methods:
-     - get: Renders the homepage for the current student, or an "Access
-          Denied" 403: Forbidden page if the current user has a different role.
-
-     If the user is not logged in, requests will redirect to the login page.
-     """
-     # Note: You'll need to use "logged in" and role checks like the ones below
-     # on every single endpoint that should be restricted to logged-in users,
-     # or users with a certain role. Otherwise, anyone who knows the URL can
-     # access that page.
-     #
-     # In this example we've just repeated the code everywhere (you'll see the
-     # same checks in staff.py and admin.py), but it would be a great idea to
-     # extract these checks into reusable functions. You could place them in
-     # user.py with the rest of the login system, for example, and import them
-     # into other modules as necessary.
-     #
-     # One common way to implement login and role checks in Flask is with "View
-     # Decorators", such as the "login_required" example in the official
-     # tutorial [1]. If you choose to use that approach, you'll need to adapt
-     # it a little to our project, as we don't store the username in `g.user`.
-     #
-     # References:
-     # [1] https://flask.palletsprojects.com/en/stable/patterns/viewdecorators/
-
-     if 'loggedin' not in session:
-          # The user isn't logged in, so redirect them to the login page.
-          return redirect(url_for('login'))
-     elif session['role']!='student':
-          # The user isn't logged in with a student account, so return an
-          # "Access Denied" page instead. We don't do a redirect here, because
-          # we're not sending them somewhere else: just delivering an
-          # alternative page.
-          # 
-          # Note: the '403' below returns HTTP status code 403: Forbidden to the
-          # browser, indicating that the user was not allowed to access the
-          # requested page.
-          return render_template('access_denied.html'), 403
-     
+   
      user_id=session['user_id']
      cursor=get_cursor()
 
@@ -60,21 +37,13 @@ def student_home():
      # homepage as requested.
      return render_template('student_home.html', user=user)
 
-def allowedfile(filename, allowedext):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowedext
 
 @app.route('/student/apply/<int:internship_id>', methods=['GET', 'POST'])
+@login_required('student') # only logged in student can access
 def apply_internship(internship_id):
 
-     # student login
-     if 'loggedin' not in session:
-          return redirect(url_for('login'))
-     elif session['role'] != 'student':
-          return render_template('access_denied.html'), 403  
-     
      user_id=session['user_id']
      cursor=get_cursor()
-
      cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
      user = cursor.fetchone()
 
@@ -103,182 +72,150 @@ def apply_internship(internship_id):
           """,(user_id,)) 
      student_info = cursor.fetchone()
 
-     # Resume 
-     Resume_Ext = {'pdf'}
-
+     # Application
      if request.method == 'POST':
-        cover_letter = request.form.get('cover_letter', '') or None
-        resume_file = request.files.get('resume') or None
-       
-        if resume_file and resume_file.filename:
-          if allowedfile(resume_file.filename, Resume_Ext):
-               max_resume_size = 5 * 1024 * 1024
-               resume_file.seek(0, os.SEEK_END)
-               resume_file_size = resume_file.tell()
-               resume_file.seek(0)
-                    
-               if resume_file_size > max_resume_size:
-                    flash('Resume file exceeds 5MB size limit.', 'danger')
+          cover_letter = request.form.get('cover_letter', '') or None
+          resume_file = request.files.get('resume') or None
+          current_resume_path = student_info['resume_path']
+          # Handle resume upload 
+          if resume_file and resume_file.filename:
+               cfg_resume = UPLOAD_CONFIG['resume']
+               resume_path, resume_error = handle_file_upload(
+                    resume_file,
+                    subfolder=cfg_resume["subfolder"],
+                    username_or_id=user["username"],
+                    allowed_exts=cfg_resume["allowed_exts"],
+                    max_size_bytes=cfg_resume["max_size"],
+                    prefix=cfg_resume["prefix"]
+               )
+               # error message
+               if resume_error:
+                    flash(resume_error, "danger")
                     return render_template('apply_internship.html', user=user, internship=internship, student_id=student_id, student_info=student_info)
-                    
+               # update db
+               if resume_path:
+                    cursor.execute("UPDATE student SET resume_path = %s WHERE user_id = %s", (resume_path, user_id))
+               
                else:
-                    ext = resume_file.filename.rsplit('.', 1)[1].lower()
-                    filename = secure_filename(f"resume_{session['username']}.{ext}")
-                    relative_path = f"resumes/{filename}"
-                    abs_path = os.path.join(app.root_path, 'static', relative_path)
+                    flash('You need a valid resume to apply. Only PDF allowed.', 'danger')
+                    return render_template('apply_internship.html', user=user, internship=internship, student_id=student_id, student_info=student_info)
+          
+          # make sure user can appy without upload a new resume
+          elif current_resume_path:
+               resume_path = current_resume_path
 
-                    # save file and update db
-                    resume_file.save(abs_path)
-
-                    try:
-                         cursor.execute("""
-                         UPDATE student SET resume_path = %s WHERE student_id = %s
-                         """, (relative_path, student_id))
-                         db.get_db().commit()
-                    except Exception as e:
-                         print("Resume path update error:", e)
-                         flash('Failed to update resume in database.','danger')
-                         return render_template('apply_internship.html',user=user, internship=internship, student_id=student_id, student_info=student_info)
           else:
-               flash('Invalid resume format. Only PDF allowed.', 'danger')
+               # No file uploaded and no resume exists
+               flash('You must upload a resume before applying.', 'danger')
                return render_template('apply_internship.html', user=user, internship=internship, student_id=student_id, student_info=student_info)
 
      # Insert application into database
-        try:
+          try:
                cursor.execute("""
                INSERT INTO application (internship_id, student_id, cover_letter)
                VALUES (%s, %s, %s)
           """, (internship_id, student_id, cover_letter))
                db.get_db().commit()
 
-        except Exception as e:
+          except Exception as e:
                print("Application insert error:", e)
                flash('Failed to submit application. Please try again.', 'danger')
                return render_template('apply_internship.html', user=user, internship=internship, student_id=student_id, student_info=student_info)
 
-        cursor.close()
-        flash('Application submitted successfully!', 'success')
-        return redirect(url_for('student_home'))
+          cursor.close()
+          flash('Application submitted successfully!', 'success')
+          return redirect(url_for('student_home'))
      
      return render_template('apply_internship.html', user=user, internship=internship, student_id=student_id, student_info=student_info)
 
-Resume_Ext = {'pdf'}
-Image_Ext = {'png', 'jpg', 'jpeg'}
-
-def allowedfile(filename, allowedext):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowedext
-
 @app.route('/student_profile', methods=['GET', 'POST'])
+@login_required('student')  # only logged student can access
 def student_profile():
-    # logged in as student
-     if 'loggedin' not in session or session.get('role') != 'student':
-        return redirect(url_for('login'))
-
+     # get user information and student information
      user_id = session['user_id']
      cursor = get_cursor()
-
-     cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
-     user = cursor.fetchone()
-
-     cursor.execute("""
-        SELECT u.full_name, u.email, u.profile_image, s.university, s.course, s.resume_path 
-        FROM user u 
-        JOIN student s ON u.user_id = s.user_id 
-        WHERE u.user_id = %s
-     """, (user_id,))
-     profile = cursor.fetchone()
+     user, profile = get_student_user_and_profile(cursor, user_id)
 
      if request.method == 'POST':
+          form_type = request.form.get("form_type")
         
-          profile_image_file = request.files.get('profile_image') or None
+          # Update full name, university, course
+          if form_type == "profile_info":
+               full_name = request.form.get('full_name')
+               university = request.form.get('university')
+               course = request.form.get('course')
+               cursor.execute("UPDATE user SET full_name = %s WHERE user_id = %s", (full_name, user_id))
+               cursor.execute("UPDATE student SET university = %s, course = %s WHERE user_id = %s", (university, course, user_id))
+               db.get_db().commit()
+               flash('Profile info updated successfully.', 'success')
 
-          # Update full name in user table
-          full_name = request.form.get('full_name')
-          cursor.execute("UPDATE user SET full_name = %s WHERE user_id = %s", (full_name, user_id))
-
-          # Update university and course in student table
-          university = request.form.get('university')
-          course = request.form.get('course')
-          cursor.execute("UPDATE student SET university = %s, course = %s WHERE user_id = %s", (university, course, user_id))
-        
           # Profile Image handling
-          if profile_image_file and profile_image_file.filename:
-               if allowedfile(profile_image_file.filename, Image_Ext):
+          elif form_type == 'profile_image':
+               profile_image_file = request.files.get('profile_image') #get file
+               cfg_img = UPLOAD_CONFIG['profile_image']  # get file setting
+               # call handler
+               profile_image_path, img_error = handle_file_upload(
+                    profile_image_file,
+                    subfolder=cfg_img["subfolder"],
+                    username_or_id=user["username"],     
+                    allowed_exts=cfg_img["allowed_exts"],
+                    max_size_bytes=cfg_img["max_size"],
+                    prefix=cfg_img["prefix"])
+               # error message
+               if img_error:
+                    flash (img_error, 'danger')
+                    return render_template ('student_profile.html', user=user, profile=profile)
+               # save path to db
+               elif profile_image_path:
+                    cursor.execute("UPDATE user SET profile_image = %s WHERE user_id = %s", (profile_image_path, user_id))
+                    db.get_db().commit()
+                    flash('Profile image updated successfully.', 'success')
+                    user, profile = get_student_user_and_profile(cursor, user_id)
+                    cursor.close()
+                    return render_template('student_profile.html', user=user, profile=profile)
 
-                    max_image_size = 1 * 1024 * 1024
-                    profile_image_file.seek(0, os.SEEK_END)
-                    image_file_size = profile_image_file.tell()
-                    profile_image_file.seek(0)
+          # remove profile image
+          elif form_type == "remove_profile_image":
+               success, msg = remove_profile_image(
+               cursor,
+               user_id,
+               user_table='user',
+               image_column='profile_image',
+               commit_func=lambda: db.get_db().commit()
+               )
+               if not success:
+                    flash(msg, 'danger')
+                    return render_template ('student_profile.html', user=user, profile=profile)
+               else:
+                    flash(msg, "success")
+                    user, profile = get_student_user_and_profile(cursor, user_id)
+                    cursor.close()
+                    return render_template ('student_profile.html', user=user, profile=profile)
 
-                    if image_file_size > max_image_size:
-                         flash("Image cannot exceed 1MB.", "danger")
-                         return render_template ('student_profile.html', user=user, profile=profile)
-
-                    else:
-                         # file name generation
-                         ext = profile_image_file.filename.rsplit('.',1)[1].lower()
-                         filename = secure_filename(f"image_{user['username']}.{ext}")
-                         relative_path = f"profile_images/{filename}"
-                         abs_path = os.path.join(app.root_path, 'static', relative_path) 
-                         # save file and update db
-                         profile_image_file.save(abs_path)          
-                         try:
-                              cursor.execute("""
-                              UPDATE user SET profile_image = %s WHERE user_id = %s
-                              """, (relative_path, user_id))
-                              db.get_db().commit()
-                              flash('Your profile has been updated successfully.', 'success')
-                         
-                         except Exception as e:
-                              flash('Only PNG, JPEG and JPG under 1 MB allowed.','danger')
-                              return render_template('student_profile.html', user=user, profile=profile)     
-
-          # Handle resume upload
-          resume_file = request.files.get('resume') or None
-          if resume_file and resume_file.filename:
-               if allowedfile(resume_file.filename, Resume_Ext):
-                    max_resume_size = 5 * 1024 * 1024
-                    resume_file.seek(0, os.SEEK_END)
-                    resume_file_size = resume_file.tell()
-                    resume_file.seek(0)
-                    
-                    if resume_file_size > max_resume_size:
-                         flash('Resume file exceeds 5MB size limit.', 'danger')
-                         return render_template('student_profile.html', user=user, profile=profile)
-                    
-                    else:
-                         # get filename created
-                         ext = resume_file.filename.rsplit('.', 1)[1].lower()
-                         filename = secure_filename(f"resume_{session['username']}.{ext}")
-                         relative_path = f"resumes/{filename}"
-                         abs_path = os.path.join(app.root_path, 'static', relative_path)
-
-                         # save file and update db
-                         resume_file.save(abs_path)
-
-                         try:
-                              cursor.execute("""
-                              UPDATE student SET resume_path = %s WHERE user_id = %s
-                              """, (relative_path, user_id))
-                              db.get_db().commit()
-                              flash('Your profile has been updated successfully.', 'success')
-                              
-                         except Exception as e:
-                              print("Resume path update error:", e)
-                              flash('Failed to update resume in database.','danger')
-                              return render_template('student_profile.html', user=user, profile=profile)
-          else:
-               flash('Invalid resume format. Only PDF allowed.', 'danger')
-               return render_template('student_profile.html', user=user, profile=profile)
+          # Handle resume upload - similar to profile image upload
+          elif form_type == "resume":
+               resume_file = request.files.get('resume')
+               cfg_resume = UPLOAD_CONFIG['resume']
+               resume_path, resume_error = handle_file_upload(
+               resume_file,
+               subfolder=cfg_resume["subfolder"],
+               username_or_id=user["username"],
+               allowed_exts=cfg_resume["allowed_exts"],
+               max_size_bytes=cfg_resume["max_size"],
+               prefix=cfg_resume["prefix"]
+               )
+               # error message
+               if resume_error:
+                    flash(resume_error, "danger")
+                    return render_template('student_profile.html', user=user, profile=profile)
+               # update db
+               elif resume_path:
+                    cursor.execute("UPDATE student SET resume_path = %s WHERE user_id = %s", (resume_path, user_id))
+                    db.get_db().commit()
+                    flash('Resume updated successfully.', 'success')
 
     # Fetch profile data
-     cursor.execute("""
-        SELECT u.full_name, u.email, u.profile_image, s.university, s.course, s.resume_path 
-        FROM user u 
-        JOIN student s ON u.user_id = s.user_id 
-        WHERE u.user_id = %s
-     """, (user_id,))
-     profile = cursor.fetchone()
+     user, profile = get_student_user_and_profile(cursor, user_id)
      cursor.close()
 
      return render_template('student_profile.html', user=user, profile=profile)

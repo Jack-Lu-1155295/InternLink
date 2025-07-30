@@ -18,3 +18,9 @@ from app import student
 from app import employer
 from app import admin
 from app import common
+
+# cache busting for profile image 
+from datetime import datetime, UTC
+@app.context_processor
+def inject_now():
+    return {'now': int(datetime.now(UTC).timestamp())}

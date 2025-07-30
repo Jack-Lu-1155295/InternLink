@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS `internship` (
   `description` TEXT NOT NULL,
   `location` VARCHAR(100) NULL DEFAULT NULL,
   `duration` VARCHAR(50) NULL DEFAULT NULL,
+  `category` TEXT NULL DEFAULT NULL,
   `skills_required` TEXT NULL DEFAULT NULL,
   `deadline` DATE,
   `stipend` VARCHAR(50) NULL DEFAULT NULL,

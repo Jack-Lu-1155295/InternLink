@@ -5,57 +5,83 @@
 {% block content %}
 <section class="container my-5">
     <h2 class="text-center mb-4">Employer Profile</h2>
-    <form method="POST" enctype="multipart/form-data" class="row g-3">
-        
-        <!-- Full Name, Email, Company Name, Company Website, 
-         Company Description, Company Logo, Profile Image-->
+    
+    <!-- Profile Info Update -->
+    <form method="POST" action="{{ url_for('employer_profile') }}" class="row g-3 mb-4" id="profileForm">
+        <input type="hidden" name="form_type" value="profile_info">
         <div class="col-md-6">
             <label for="full_name" class="form-label">Full Name</label>
             <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name or '' }}" required>
         </div>
-
         <div class="col-md-6">
             <label for="email" class="form-label">Email (read-only)</label>
             <input type="email" class="form-control" id="email" value="{{ user.email or '' }}" readonly>
         </div>
-
         <div class="col-md-6">
             <label for="company_name" class="form-label">Company Name</label>
             <input type="text" class="form-control" id="company_name" name="company_name" value="{{ profile.company_name or '' }}" required>
         </div>
-
         <div class="col-md-6">
             <label for="website" class="form-label">Company Website</label>
-            <input type="text" class="form-control" id="website" 
-            name="website" 
-            placeholder="https://yourcompanywebsite.com"
-            value="{{ profile.website or '' }}">            
+            <input type="text" class="form-control" id="website" name="website" placeholder="https://yourcompanywebsite.com" value="{{ profile.website or '' }}">
         </div>
-
         <div class="col-md-12">
             <label for="company_description" class="form-label">Company Description</label>
             <textarea class="form-control" id="company_description" name="company_description" rows="4">{{ profile.company_description or '' }}</textarea>
         </div>
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-success">Update Info</button>
+        </div>
+    </form>
 
+    <!-- Company Logo Upload -->
+    <form method="POST" action="{{ url_for('employer_profile') }}" enctype="multipart/form-data" class="row g-3 mb-4" id="logoForm">
+        <input type="hidden" name="form_type" value="company_logo">
         <div class="col-md-12">
-            <label for="logo" class="form-label">Company Logo (JPG, PNG only)</label>
+            <label for="logo" class="form-label">Company Logo (JPG, PNG only, max 1MB)</label>
             <input type="file" class="form-control" id="logo" name="logo" accept=".jpg,.jpeg,.png">
             {% if profile.logo_path %}
                 <small class="form-text text-muted mt-1">
-                    Current: <img src="{{ url_for('static', filename = profile.logo_path) }}" alt="Company Logo" style="max-height: 100px;" class="ms-2">
+                    Current: <img src="{{ url_for('static', filename=profile.logo_path) }}?v={{ now }}" alt="Company Logo" style="max-height: 100px;" class="ms-2">
                 </small>
             {% endif %}
         </div>
-
-        <div class="mb-3">
-          <label for="profile_image" class="form-label fw-semibold">Upload Profile Image (PNG, JPG, JPEG - max 1MB)</label>
-          <input type="file" class="form-control" 
-          id="profile_image" name="profile_image" accept="image/*">
-        </div>  
-
         <div class="col-12 text-end">
-            <button type="submit" class="btn btn-primary">Update Profile</button>
+            <button type="submit" class="btn btn-success">Update Logo</button>
+        </div>
+    </form>    
+
+    <!-- Profile Image Upload -->
+    <form method="POST" action="{{ url_for('employer_profile') }}" enctype="multipart/form-data" class="row g-3 mb-2" id="imageForm">
+        <input type="hidden" name="form_type" value="profile_image">
+        <div class="col-12">
+            <label for="profile_image" class="form-label fw-semibold">Upload Profile Image (PNG, JPG, JPEG - max 1MB)</label>
+            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+        </div>
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-success">Update Image</button>
         </div>
     </form>
+
+    <!-- remove profile image (back to default) -->
+    {% if user.profile_image %}
+    <div class="row mb-3">
+        <div class="col-12 text-center">
+            <img src="{{ url_for('static', filename=user.profile_image) }}?v={{ now }}"
+                alt="Profile Image"
+                class="rounded-circle img-thumbnail"
+                style="width:100px; height:100px; object-fit:cover;">
+        </div>
+        <div class="col-12 text-center mt-2">
+            <form method="POST" action="{{ url_for('employer_profile') }}" style="display:inline;">
+                <input type="hidden" name="form_type" value="remove_profile_image">
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Are you sure you want to remove your profile image?');">
+                    &#128465; Remove Profile Image (Back to Default)
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 </section>
 {% endblock %}
