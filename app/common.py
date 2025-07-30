@@ -193,8 +193,8 @@ def change_password():
         elif bcrypt.check_password_hash(result['password_hash'], new_password):
             flash("New password cannot be the same as the current password.", "warning")
             return render_template('change_password.html', user=user)
-        elif not is_strong_password(new_password):
-            flash("Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character @$!%*?&.", "warning")
+        elif (str_error := is_strong_password(new_password)):
+            flash(str_error, "warning")
             return render_template('change_password.html', user=user)
         
         # update password
