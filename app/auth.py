@@ -202,6 +202,10 @@ def signup():
             else:
                 resume_error = 'You can only upload your resume in PDF format.' 
 
+
+        resume_relative_path = None
+        pfimage_relative_path = None
+        
         # Profile Image handling
         if profile_image_file and profile_image_file.filename:
             if allowedfile(profile_image_file.filename, Image_Ext):
