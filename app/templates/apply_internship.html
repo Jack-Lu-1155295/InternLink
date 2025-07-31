@@ -6,7 +6,14 @@
 {% block content %}
 <section class="container my-5">
     <h2 class="text-center mb-4">Apply for Internship</h2>
+    
+    {% if already_applied %}
+        <div class="alert alert-info mt-4">
+            You have already applied for this internship. View other <a href="{{ url_for('browse_internships') }}"> internships</a> or check your <a href="{{ url_for('view_applications') }}"> status</a>.
+        </div>
+    {% else %}
 
+    
     <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
         <div class="row mb-4">
             <div class="col-md-6">
@@ -49,5 +56,6 @@
             <a href="{{ url_for('student_home') }}" class="btn btn-secondary btn-lg ms-2">Cancel</a>
         </div>
     </form>
+    {% endif %}
 </section>
 {% endblock %}

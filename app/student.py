@@ -82,6 +82,19 @@ def apply_internship(internship_id):
           """,(user_id,)) 
      student_info = cursor.fetchone()
 
+
+     # Check if the student has applied this internship already
+     cursor.execute("""
+          SELECT * FROM application
+          WHERE student_id = %s AND internship_id = %s
+          """, (student_id, internship_id))
+     already_applied = cursor.fetchone() is not None
+
+     # If already applied, display a message and do NOT show form
+     if already_applied:
+          cursor.close()
+          return render_template('apply_internship.html', user=user, internship=internship, student_id=student_id, student_info=student_info, already_applied=True)
+     
      # Application
      if request.method == 'POST':
           cover_letter = request.form.get('cover_letter', '') or None
