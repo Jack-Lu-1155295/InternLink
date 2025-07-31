@@ -1,3 +1,14 @@
+"""
+common.py
+
+Routes for shared functions 
+- browse internships - with role based control that employer can only see internships they posted.
+- view applications - with role based control 
+- change password 
+
+"""
+
+
 from app import app
 from app import db
 from flask import redirect, render_template, request, session, url_for, flash

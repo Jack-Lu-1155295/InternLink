@@ -1,3 +1,16 @@
+"""
+auth.py
+
+Core authentication routes and logic for the web application.
+- Secure login (with password hashing).
+- User signup/registration with validation and file upload.
+- Session management and logout.
+- Helper for determining the home page based on role.
+
+"""
+
+
+
 from app import app
 from app import db
 from flask import redirect, render_template, request, session, url_for, flash
@@ -84,10 +97,9 @@ def login():
 
     return render_template('login.html')
 
-# signup
 @app.route('/signup', methods=['GET','POST'])
 def signup():
-
+    # sign up and registration function
     if 'loggedin' in session:
          return redirect(user_home_url())
     
@@ -235,20 +247,7 @@ def signup():
 
 @app.route('/logout')
 def logout():
-    """Logout endpoint.
+    # clear all keys from the session
+    session.clear()
 
-    Methods:
-    - get: Logs the current user out (if they were logged in to begin with),
-        and redirects them to the login page.
-    """
-    # Note that nothing actually happens on the server when a user logs out: we
-    # just remove the cookie from their web browser. They could technically log
-    # back in by manually restoring the cookie we've just deleted. In a high-
-    # security web app, you may need additional protections against this (e.g.
-    # keeping a record of active sessions on the server side).
-    session.pop('loggedin', None)
-    session.pop('user_id', None)
-    session.pop('username', None)
-    session.pop('role', None)
-    
     return redirect(url_for('login'))

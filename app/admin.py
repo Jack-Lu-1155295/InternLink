@@ -1,3 +1,14 @@
+"""
+admin.py
+
+Routes for admin features: 
+- Admin home page
+- Admin profile - view and update info
+- User management - view a list of all users, filtering and change account status
+- View user profile - under user management, admin can choose to view each user's profile
+"""
+
+
 from app import app
 from app import db
 from flask import redirect, render_template, session, url_for, request, flash
@@ -7,7 +18,7 @@ from werkzeug.utils import secure_filename
 from app.utils import login_required, handle_file_upload, is_valid_full_name, is_valid_email, remove_profile_image
 from app.config import UPLOAD_CONFIG
 
-# user information
+# Get user information from the db by user id. This returns user info as a dict or None if not found.
 def get_user(cursor, user_id):
     cursor.execute("SELECT * FROM user WHERE user_id = %s", (user_id,))
     return cursor.fetchone()
@@ -16,7 +27,7 @@ def get_user(cursor, user_id):
 # only logged in admin can access
 @login_required('admin')
 def admin_home():
-    
+
      user_id=session['user_id']
      cursor=get_cursor()
 
@@ -29,6 +40,8 @@ def admin_home():
 @app.route('/admin_profile', methods=['GET', 'POST'])
 @login_required('admin') # only logged in admin can access
 def admin_profile():
+     # this is to view and edit the admin user's own profile. 
+     # admin user can edit their full name, email, uploading/removing profile image.
      user_id = session['user_id']
      cursor = get_cursor()
      user = get_user(cursor, user_id)
@@ -95,7 +108,7 @@ def admin_profile():
                     cursor.close()
                     return render_template ('admin_profile.html', user=user)
  
-    # Fetch profile data
+     # Fetch profile data
      user = get_user(cursor, user_id)
      cursor.close()
 
@@ -104,7 +117,7 @@ def admin_profile():
 @app.route('/admin/users', methods=['GET', 'POST'])
 @login_required('admin') # only logged in admin can access
 def user_management():
-     
+     # a list of all users for admin to manage user status. 
      user_id=session['user_id']
      cursor=get_cursor()
      user = get_user(cursor, user_id)
@@ -163,26 +176,29 @@ def user_management():
 @app.route('/admin/user/<int:user_id>')
 @login_required('admin') # only logged in admin can access
 def admin_view_user_profile(user_id):
-    cursor = get_cursor()
-    user = get_user(cursor, session['user_id']) # admin
+     # for admin user to view A user's profile.
+     cursor = get_cursor()
+     user = get_user(cursor, session['user_id']) # admin
 
-    user_profile = get_user(cursor, user_id) # user to be viewed
-    student_info = None
-    employer_info = None
+     user_profile = get_user(cursor, user_id) # user to be viewed
+     student_info = None
+     employer_info = None
 
-    if user_profile['role'] == 'student':
-        cursor.execute("SELECT university, course, resume_path FROM student WHERE user_id = %s", (user_id,))
-        student_info = cursor.fetchone()
+     # if it's student, show student info
+     if user_profile['role'] == 'student':
+          cursor.execute("SELECT university, course, resume_path FROM student WHERE user_id = %s", (user_id,))
+          student_info = cursor.fetchone()
 
-    elif user_profile['role'] == 'employer':
-        cursor.execute("SELECT company_name, company_description, website, logo_path FROM employer WHERE user_id = %s", (user_id,))
-        employer_info = cursor.fetchone()
+     # if it's employer, show employer info
+     elif user_profile['role'] == 'employer':
+          cursor.execute("SELECT company_name, company_description, website, logo_path FROM employer WHERE user_id = %s", (user_id,))
+          employer_info = cursor.fetchone()
         
-    cursor.close()
-    return render_template(
-        'admin_view_user_profile.html',
-        user=user,
-        user_profile=user_profile,
-        student_info=student_info,
-        employer_info=employer_info
-    )
+     cursor.close()
+     return render_template(
+          'admin_view_user_profile.html',
+          user=user,
+          user_profile=user_profile,
+          student_info=student_info,
+          employer_info=employer_info
+     )

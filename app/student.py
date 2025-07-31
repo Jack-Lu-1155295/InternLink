@@ -1,3 +1,13 @@
+"""
+student.py
+
+Routes for student features: 
+- Student home page
+- Internship application
+- Student profile - view and update profile info
+"""
+
+
 from app import app
 from app import db
 from flask import redirect, render_template, session, url_for

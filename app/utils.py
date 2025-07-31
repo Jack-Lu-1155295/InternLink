@@ -1,3 +1,14 @@
+"""
+utils.py
+
+Utility functions and decorators for the app: 
+- Role-based login decorator for route protection.
+- File upload validation and handling (handles resume, profile image, and company logo)
+- File deletion for user profile images.
+- Validation helpers for passwords, full names, and emails.
+"""
+
+
 from functools import wraps
 from flask import session, redirect, url_for, render_template
 import os

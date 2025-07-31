@@ -1,3 +1,12 @@
+"""
+employer.py
+
+Routes for employer features: 
+- Employer home page
+- Employer profile - view and update their profile info and company info
+"""
+
+
 from app import app
 from app import db
 from flask import redirect, render_template, session, url_for, request, flash
